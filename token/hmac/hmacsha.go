@@ -25,6 +25,7 @@ import (
 	"github.com/gtank/cryptopasta"
 	"github.com/spotxchange/fosite"
 	"github.com/pkg/errors"
+	"github.com/spotxchange/fosite"
 )
 
 // HMACStrategy is responsible for generating and validating challenges.

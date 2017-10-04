@@ -22,8 +22,8 @@ import (
 
 	"context"
 
-	"github.com/spotxchange/fosite"
 	"github.com/pkg/errors"
+	"github.com/spotxchange/fosite"
 )
 
 // AuthorizeExplicitGrantTypeHandler is a response handler for the Authorize Code grant using the explicit grant type

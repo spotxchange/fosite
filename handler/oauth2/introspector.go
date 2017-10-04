@@ -16,11 +16,10 @@ package oauth2
 
 import (
 	"context"
-
 	"fmt"
 	
-	"github.com/spotxchange/fosite"
 	"github.com/pkg/errors"
+	"github.com/spotxchange/fosite"
 )
 
 type CoreValidator struct {

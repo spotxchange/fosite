@@ -74,6 +74,20 @@ func (t *RevocationHandlers) Append(h RevocationHandler) {
 	*t = append(*t, h)
 }
 
+// MigrationHandlers is a list of RevocationHandler
+type MigrationHandlers []MigrationHandler
+
+// Append adds an RevocationHandler to this list. Ignores duplicates based on reflect.TypeOf.
+func (t *MigrationHandlers) Append(h MigrationHandler) {
+	for _, this := range *t {
+		if reflect.TypeOf(this) == reflect.TypeOf(h) {
+			return
+		}
+	}
+
+	*t = append(*t, h)
+}
+
 // Fosite implements OAuth2Provider.
 type Fosite struct {
 	Store                      Storage
@@ -83,6 +97,7 @@ type Fosite struct {
 	RevocationHandlers         RevocationHandlers
 	Hasher                     Hasher
 	ScopeStrategy              ScopeStrategy
+	MigrationHandlers          MigrationHandlers
 
 	// SendDebugMessagesToClients if set to true, includes error debug messages in response payloads. Be aware that sensitive
 	// data may be exposed, depending on your implementation of Fosite. Such sensitive data might include database error

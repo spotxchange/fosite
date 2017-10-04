@@ -49,7 +49,6 @@ func AccessTokenFromRequest(req *http.Request) string {
 
 func (f *Fosite) IntrospectToken(ctx context.Context, token string, tokenType TokenType, session Session, scopes ...string) (AccessRequester, error) {
 	var found bool = false
-
 	ar := NewAccessRequest(session)
 	for _, validator := range f.TokenIntrospectionHandlers {
 		if err := errors.Cause(validator.IntrospectToken(ctx, token, tokenType, ar, scopes)); err == nil {

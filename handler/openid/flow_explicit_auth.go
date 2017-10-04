@@ -17,8 +17,8 @@ package openid
 import (
 	"context"
 
-	"github.com/spotxchange/fosite"
 	"github.com/pkg/errors"
+	"github.com/spotxchange/fosite"
 )
 
 type OpenIDConnectExplicitHandler struct {

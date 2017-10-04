@@ -20,8 +20,8 @@ import (
 	"context"
 	"time"
 
-	"github.com/spotxchange/fosite"
 	"github.com/pkg/errors"
+	"github.com/spotxchange/fosite"
 )
 
 type ClientCredentialsGrantHandler struct {

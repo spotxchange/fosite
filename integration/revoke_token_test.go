@@ -19,10 +19,10 @@ import (
 
 	"net/http"
 
+	"github.com/parnurzeal/gorequest"
 	"github.com/spotxchange/fosite"
 	"github.com/spotxchange/fosite/compose"
 	"github.com/spotxchange/fosite/handler/oauth2"
-	"github.com/parnurzeal/gorequest"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	goauth "golang.org/x/oauth2"

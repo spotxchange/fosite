@@ -20,10 +20,10 @@ import (
 	"context"
 	"encoding/base64"
 
+	"github.com/pkg/errors"
 	"github.com/spotxchange/fosite"
 	"github.com/spotxchange/fosite/handler/oauth2"
 	"github.com/spotxchange/fosite/token/jwt"
-	"github.com/pkg/errors"
 )
 
 type OpenIDConnectImplicitHandler struct {

@@ -23,8 +23,8 @@ import (
 	"context"
 	"strconv"
 
-	"github.com/spotxchange/fosite"
 	"github.com/pkg/errors"
+	"github.com/spotxchange/fosite"
 )
 
 // AuthorizeImplicitGrantTypeHandler is a response handler for the Authorize Code grant using the implicit grant type

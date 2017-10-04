@@ -18,9 +18,9 @@ import (
 	"net/http"
 	"testing"
 
+	"github.com/pkg/errors"
 	"github.com/spotxchange/fosite"
 	"github.com/spotxchange/fosite/handler/oauth2"
-	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 )
 
