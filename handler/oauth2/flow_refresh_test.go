@@ -152,11 +152,97 @@ func TestRefreshFlow_HandleTokenEndpointRequest(t *testing.T) {
 }
 
 func TestRefreshFlow_PopulateTokenEndpointResponse(t *testing.T) {
+<<<<<<< HEAD
 	var areq *fosite.AccessRequest
 	var aresp *fosite.AccessResponse
 
 	for k, strategy := range map[string]CoreStrategy{
 		"hmac": &hmacshaStrategy,
+=======
+	ctrl := gomock.NewController(t)
+	store := internal.NewMockRefreshTokenGrantStorage(ctrl)
+	rcts := internal.NewMockRefreshTokenStrategy(ctrl)
+	acts := internal.NewMockAccessTokenStrategy(ctrl)
+	areq := fosite.NewAccessRequest(nil)
+	aresp := internal.NewMockAccessResponder(ctrl)
+	areq.Form = url.Values{}
+	defer ctrl.Finish()
+
+	areq.Client = &fosite.DefaultClient{}
+	h := RefreshTokenGrantHandler{
+		RefreshTokenGrantStorage: store,
+		RefreshTokenStrategy:     rcts,
+		RefreshTokenLifespan:     0,
+		AccessTokenStrategy:      acts,
+		AccessTokenLifespan:      time.Hour,
+	}
+	for k, c := range []struct {
+		description string
+		setup       func()
+		expectErr   error
+	}{
+		{
+			description: "should fail because not responsible",
+			expectErr:   fosite.ErrUnknownRequest,
+			setup: func() {
+				areq.GrantTypes = fosite.Arguments{"313"}
+			},
+		},
+		{
+			description: "should fail because access token generation fails",
+			setup: func() {
+				areq.GrantTypes = fosite.Arguments{"refresh_token"}
+				areq.Form.Add("refresh_token", "foo.reftokensig")
+				rcts.EXPECT().RefreshTokenSignature("foo.reftokensig").AnyTimes().Return("reftokensig")
+				acts.EXPECT().GenerateAccessToken(nil, areq).Return("", "", errors.New(""))
+			},
+			expectErr: fosite.ErrServerError,
+		},
+		{
+			description: "should fail because access token generation fails",
+			setup: func() {
+				acts.EXPECT().GenerateAccessToken(nil, areq).AnyTimes().Return("access.atsig", "atsig", nil)
+				rcts.EXPECT().GenerateRefreshToken(nil, areq).Return("", "", errors.New(""))
+			},
+			expectErr: fosite.ErrServerError,
+		},
+		{
+			description: "should fail because persisting fails",
+			setup: func() {
+				rcts.EXPECT().GenerateRefreshToken(nil, areq).AnyTimes().Return("refresh.resig", "resig", nil)
+				store.EXPECT().PersistRefreshTokenGrantSession(nil, "reftokensig", "atsig", "resig", areq).Return(errors.New(""))
+			},
+			expectErr: fosite.ErrServerError,
+		},
+		{
+			description: "should pass",
+			setup: func() {
+				areq.Session = &fosite.DefaultSession{}
+				store.EXPECT().PersistRefreshTokenGrantSession(nil, "reftokensig", "atsig", "resig", areq).AnyTimes().Return(nil)
+
+				aresp.EXPECT().SetAccessToken("access.atsig")
+				aresp.EXPECT().SetTokenType("bearer")
+				aresp.EXPECT().SetExpiresIn(gomock.Any())
+				aresp.EXPECT().SetScopes(gomock.Any())
+				aresp.EXPECT().SetExtra("refresh_token", "refresh.resig")
+			},
+		},
+		{
+			description: "should insert the same token signature for permanent",
+			setup: func() {
+				areq.Session = &fosite.DefaultSession{}
+
+				h.RefreshTokenLifespan = -1
+
+				store.EXPECT().PersistRefreshTokenGrantSession(nil, "reftokensig", "atsig", "reftokensig", areq).AnyTimes().Return(nil)
+				aresp.EXPECT().SetAccessToken("access.atsig")
+				aresp.EXPECT().SetTokenType("bearer")
+				aresp.EXPECT().SetExpiresIn(gomock.Any())
+				aresp.EXPECT().SetScopes(gomock.Any())
+				aresp.EXPECT().SetExtra("refresh_token", "foo.reftokensig")
+			},
+		},
+>>>>>>> Adding a configuration to refresh token to allow expiry or permanency. (#1)
 	} {
 		t.Run("strategy="+k, func(t *testing.T) {
 			store := storage.NewMemoryStore()

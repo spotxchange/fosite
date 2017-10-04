@@ -29,6 +29,9 @@ type RefreshTokenGrantHandler struct {
 
 	// AccessTokenLifespan defines the lifetime of an access token.
 	AccessTokenLifespan time.Duration
+
+	// RefreshTokenLifespan sets how long an id token is going to be valid. Defaults to one hour.
+	RefreshTokenLifespan time.Duration
 }
 
 // HandleTokenEndpointRequest implements https://tools.ietf.org/html/rfc6749#section-6
@@ -51,6 +54,8 @@ func (c *RefreshTokenGrantHandler) HandleTokenEndpointRequest(ctx context.Contex
 		return errors.WithStack(fosite.ErrInvalidRequest.WithDebug(err.Error()))
 	} else if err != nil {
 		return errors.WithStack(fosite.ErrServerError.WithDebug(err.Error()))
+	} else if c.RefreshTokenLifespan > 0 && originalRequest.GetRequestedAt().Add(c.RefreshTokenLifespan).Before(time.Now()) {
+		return errors.WithStack(fosite.ErrTokenExpired)
 	} else if err := c.RefreshTokenStrategy.ValidateRefreshToken(ctx, request, refresh); err != nil {
 		// The authorization server MUST ... validate the refresh token.
 		// This needs to happen after store retrieval for the session to be hydrated properly
@@ -88,7 +93,7 @@ func (c *RefreshTokenGrantHandler) PopulateTokenEndpointResponse(ctx context.Con
 		return errors.WithStack(fosite.ErrServerError.WithDebug(err.Error()))
 	}
 
-	refreshToken, refreshSignature, err := c.RefreshTokenStrategy.GenerateRefreshToken(ctx, requester)
+	refreshToken, refreshSignature, err := c.getRefreshTokenAndSignature(ctx, requester)
 	if err != nil {
 		return errors.WithStack(fosite.ErrServerError.WithDebug(err.Error()))
 	}
@@ -112,4 +117,14 @@ func (c *RefreshTokenGrantHandler) PopulateTokenEndpointResponse(ctx context.Con
 	responder.SetScopes(requester.GetGrantedScopes())
 	responder.SetExtra("refresh_token", refreshToken)
 	return nil
+}
+
+func (c *RefreshTokenGrantHandler) getRefreshTokenAndSignature(ctx context.Context, requester fosite.AccessRequester) (refreshToken string, refreshSignature string, err error) {
+	if c.RefreshTokenLifespan < 0 {
+		refreshToken = requester.GetRequestForm().Get("refresh_token")
+		refreshSignature = c.RefreshTokenStrategy.RefreshTokenSignature(refreshToken)
+	} else {
+		refreshToken, refreshSignature, err = c.RefreshTokenStrategy.GenerateRefreshToken(ctx, requester)
+	}
+	return
 }
