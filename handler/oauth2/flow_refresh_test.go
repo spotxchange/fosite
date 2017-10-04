@@ -26,6 +26,7 @@ func TestRefreshFlow_HandleTokenEndpointRequest(t *testing.T) {
 		RefreshTokenGrantStorage: store,
 		RefreshTokenStrategy:     chgen,
 		AccessTokenLifespan:      time.Hour,
+		RefreshTokenLifespan:     0,
 	}
 	for k, c := range []struct {
 		description string
@@ -96,6 +97,44 @@ func TestRefreshFlow_HandleTokenEndpointRequest(t *testing.T) {
 				assert.NotEqual(t, url.Values{"foo": []string{"bar"}}, areq.Form)
 			},
 		},
+		{
+			description: "should pass with permanent refresh token",
+			setup: func() {
+				areq.SetSession(nil)
+				store.EXPECT().GetRefreshTokenSession(nil, "refreshtokensig", nil).Return(&fosite.Request{
+					Client:        &fosite.DefaultClient{ID: "foo"},
+					GrantedScopes: fosite.Arguments{"foo", "offline"},
+					Scopes:        fosite.Arguments{"foo", "bar"},
+					Session:       sess,
+					Form:          url.Values{"foo": []string{"bar"}},
+					RequestedAt:   time.Now().Add(-time.Hour).Round(time.Hour),
+				}, nil)
+				h.RefreshTokenLifespan = -time.Hour
+			},
+			expect: func() {
+				assert.NotEqual(t, sess, areq.Session)
+				assert.NotEqual(t, time.Now().Add(-time.Hour).Round(time.Hour), areq.RequestedAt)
+				assert.Equal(t, fosite.Arguments{"foo", "offline"}, areq.GrantedScopes)
+				assert.Equal(t, fosite.Arguments{"foo", "bar"}, areq.Scopes)
+				assert.NotEqual(t, url.Values{"foo": []string{"bar"}}, areq.Form)
+			},
+		},
+		{
+			description: "should reject expired refresh token",
+			setup: func() {
+				areq.SetSession(nil)
+				store.EXPECT().GetRefreshTokenSession(nil, "refreshtokensig", nil).Return(&fosite.Request{
+					Client:        &fosite.DefaultClient{ID: "foo"},
+					GrantedScopes: fosite.Arguments{"foo", "offline"},
+					Scopes:        fosite.Arguments{"foo", "bar"},
+					Session:       sess,
+					Form:          url.Values{"foo": []string{"bar"}},
+					RequestedAt:   time.Now().Add(-time.Hour).Round(time.Hour),
+				}, nil)
+				h.RefreshTokenLifespan = time.Second
+			},
+			expectErr: fosite.ErrTokenExpired,
+		},
 	} {
 		c.setup()
 		err := h.HandleTokenEndpointRequest(nil, areq)
@@ -121,6 +160,7 @@ func TestRefreshFlow_PopulateTokenEndpointResponse(t *testing.T) {
 	h := RefreshTokenGrantHandler{
 		RefreshTokenGrantStorage: store,
 		RefreshTokenStrategy:     rcts,
+		RefreshTokenLifespan:     0,
 		AccessTokenStrategy:      acts,
 		AccessTokenLifespan:      time.Hour,
 	}
@@ -173,6 +213,21 @@ func TestRefreshFlow_PopulateTokenEndpointResponse(t *testing.T) {
 				aresp.EXPECT().SetExpiresIn(gomock.Any())
 				aresp.EXPECT().SetScopes(gomock.Any())
 				aresp.EXPECT().SetExtra("refresh_token", "refresh.resig")
+			},
+		},
+		{
+			description: "should insert the same token signature for permanent",
+			setup: func() {
+				areq.Session = &fosite.DefaultSession{}
+
+				h.RefreshTokenLifespan = -1
+
+				store.EXPECT().PersistRefreshTokenGrantSession(nil, "reftokensig", "atsig", "reftokensig", areq).AnyTimes().Return(nil)
+				aresp.EXPECT().SetAccessToken("access.atsig")
+				aresp.EXPECT().SetTokenType("bearer")
+				aresp.EXPECT().SetExpiresIn(gomock.Any())
+				aresp.EXPECT().SetScopes(gomock.Any())
+				aresp.EXPECT().SetExtra("refresh_token", "foo.reftokensig")
 			},
 		},
 	} {

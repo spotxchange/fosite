@@ -40,6 +40,7 @@ func OAuth2RefreshTokenGrantFactory(config *Config, storage interface{}, strateg
 		RefreshTokenStrategy:     strategy.(oauth2.RefreshTokenStrategy),
 		RefreshTokenGrantStorage: storage.(oauth2.RefreshTokenGrantStorage),
 		AccessTokenLifespan:      config.GetAccessTokenLifespan(),
+		RefreshTokenLifespan:     config.GetRefreshTokenLifespan(),
 	}
 }
 

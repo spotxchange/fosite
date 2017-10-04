@@ -12,6 +12,9 @@ type Config struct {
 	// IDTokenLifespan sets how long an id token is going to be valid. Defaults to one hour.
 	IDTokenLifespan time.Duration
 
+	// RefreshTokenLifespan sets how long a refresh token is going to be valid. Defaults to zero meaning no expiry. Negative values mean the token is permanent.
+	RefreshTokenLifespan time.Duration
+
 	// HashCost sets the cost of the password hashing cost. Defaults to 12.
 	HashCost int
 }
@@ -30,6 +33,11 @@ func (c *Config) GetIDTokenLifespan() time.Duration {
 		return time.Hour
 	}
 	return c.IDTokenLifespan
+}
+
+// GeRefreshTokenLifespan returns how long a refresh token should be valid. Defaults to zero meaning no expiry. Negative values mean the token is permanent.
+func (c *Config) GetRefreshTokenLifespan() time.Duration {
+	return c.RefreshTokenLifespan
 }
 
 // GetAccessTokenLifespan returns how long a refresh token should be valid. Defaults to one hour.
