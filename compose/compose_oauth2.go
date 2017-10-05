@@ -32,6 +32,17 @@ func OAuth2ClientCredentialsGrantFactory(config *Config, storage interface{}, st
 	}
 }
 
+// OAuth2TokenMigrationFactory creates an OAuth2 migaration handler and registers
+// an access token, refresh token and authorize code validator.
+func OAuth2TokenMigrationFactory(config *Config, storage interface{}, strategy interface{}) interface{} {
+	return &oauth2.TokenMigrationHandler{
+		AccessTokenStrategy:  strategy.(oauth2.AccessTokenStrategy),
+		RefreshTokenStrategy: strategy.(oauth2.RefreshTokenStrategy),
+		AccessTokenStorage:   storage.(oauth2.AccessTokenStorage),
+		RefreshTokenStorage:  storage.(oauth2.RefreshTokenStorage),
+	}
+}
+
 // OAuth2RefreshTokenGrantFactory creates an OAuth2 refresh grant handler and registers
 // an access token, refresh token and authorize code validator.
 func OAuth2RefreshTokenGrantFactory(config *Config, storage interface{}, strategy interface{}) interface{} {

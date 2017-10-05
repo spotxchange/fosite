@@ -138,6 +138,12 @@ type OAuth2Provider interface {
 	// WriteIntrospectionResponse responds with token metadata discovered by token introspection as defined in
 	// https://tools.ietf.org/search/rfc7662#section-2.2
 	WriteIntrospectionResponse(rw http.ResponseWriter, r IntrospectionResponder)
+
+	// NewTokenMigrationRequest initiates a token migration
+	NewTokenMigrationRequest(ctx context.Context, r *http.Request, session Session) error
+
+	// WriteTokenMigrationError responds with an error if token migration failed as defined in
+	WriteTokenMigrationResponse(rw http.ResponseWriter, err error)
 }
 
 // IntrospectionResponse is the response object that will be returned when token introspection was successful,
