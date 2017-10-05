@@ -42,6 +42,7 @@ func Compose(config *Config, storage interface{}, strategy interface{}, hasher f
 		RevocationHandlers:         fosite.RevocationHandlers{},
 		Hasher:                     hasher,
 		ScopeStrategy:              fosite.HierarchicScopeStrategy,
+		MigrationHandlers:          fosite.MigrationHandlers{},
 	}
 
 	for _, factory := range factories {
@@ -57,6 +58,9 @@ func Compose(config *Config, storage interface{}, strategy interface{}, hasher f
 		}
 		if rh, ok := res.(fosite.RevocationHandler); ok {
 			f.RevocationHandlers.Append(rh)
+		}
+		if rh, ok := res.(fosite.MigrationHandler); ok {
+			f.MigrationHandlers.Append(rh)
 		}
 	}
 

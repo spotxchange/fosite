@@ -1,0 +1,46 @@
+package oauth2
+
+import (
+	"context"
+
+	"github.com/ory/fosite"
+	"github.com/pkg/errors"
+)
+
+// TokenMigrationHandler handlers migrating tokens from another OAuth 2 system
+type TokenMigrationHandler struct {
+	AccessTokenStorage AccessTokenStorage
+
+	RefreshTokenStorage RefreshTokenStorage
+
+	AccessTokenStrategy AccessTokenStrategy
+
+	RefreshTokenStrategy RefreshTokenStrategy
+}
+
+// MigrateToken handles generating the token signatures and storing the tokens
+func (c *TokenMigrationHandler) MigrateToken(ctx context.Context, requester fosite.AccessRequester, responder fosite.AccessResponder) (err error) {
+	var refreshToken string
+	if token := responder.GetExtra("refresh_token"); token != nil {
+		var ok bool
+		if refreshToken, ok = token.(string); !ok {
+			return fosite.ErrInvalidRequest
+		}
+	}
+
+	tokenSignature := c.AccessTokenStrategy.AccessTokenSignature(responder.GetAccessToken())
+
+	if err = c.AccessTokenStorage.CreateAccessTokenSession(ctx, tokenSignature, requester); err != nil {
+		return err
+	}
+	if refreshToken != "" {
+		refreshTokenSignature := c.RefreshTokenStrategy.RefreshTokenSignature(refreshToken)
+		if err = c.RefreshTokenStorage.CreateRefreshTokenSession(ctx, refreshTokenSignature, requester); err != nil {
+			if ex := c.AccessTokenStorage.DeleteAccessTokenSession(ctx, tokenSignature); ex != nil {
+				err = errors.Wrap(err, ex.Error())
+			}
+			return err
+		}
+	}
+	return nil
+}
