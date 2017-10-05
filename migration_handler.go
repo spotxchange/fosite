@@ -83,9 +83,9 @@ func (f *Fosite) NewTokenMigrationRequest(ctx context.Context, r *http.Request, 
 	if orgID, orgSecret, err := f.getOriginalClientCredentials(originalClientEncoded); err != nil {
 		return errors.Wrap(ErrInvalidClient, err.Error())
 	} else if orgClientID, err = url.QueryUnescape(orgID); err != nil {
-		return errors.Wrap(ErrInvalidRequest, `The client id in the HTTP authorization header could not be decoded from "application/x-www-form-urlencoded"`)
+		return errors.Wrap(ErrInvalidRequest, `The client id in the body of the request could not be decoded from "application/x-www-form-urlencoded"`)
 	} else if orgClientSecret, err = url.QueryUnescape(orgSecret); err != nil {
-		return errors.Wrap(ErrInvalidRequest, `The client secret in the HTTP authorization header could not be decoded from "application/x-www-form-urlencoded"`)
+		return errors.Wrap(ErrInvalidRequest, `The client secret in the body of the request could not be decoded from "application/x-www-form-urlencoded"`)
 	}
 
 	originalClient, err := f.Store.GetClient(ctx, orgClientID)
@@ -93,7 +93,7 @@ func (f *Fosite) NewTokenMigrationRequest(ctx context.Context, r *http.Request, 
 		return errors.Wrap(ErrInvalidClient, err.Error())
 	}
 
-	if !originalClient.IsPublic() {
+	if orgClientSecret != "" && !originalClient.IsPublic() {
 		// Enforce client authentication
 		if err := f.Hasher.Compare(originalClient.GetHashedSecret(), []byte(orgClientSecret)); err != nil {
 			return errors.Wrap(ErrInvalidClient, err.Error())
@@ -104,6 +104,14 @@ func (f *Fosite) NewTokenMigrationRequest(ctx context.Context, r *http.Request, 
 	accessRequest.SetRequestedScopes(originalClient.GetScopes())
 
 	resp := NewAccessResponse()
+
+	if !strings.Contains(token, ".") {
+		token = "." + token
+	}
+	if refreshToken != "" && !strings.Contains(refreshToken, ".") {
+		refreshToken = "." + refreshToken
+	}
+
 	resp.SetAccessToken(token)
 	resp.SetExtra("refresh_token", refreshToken)
 
@@ -119,17 +127,14 @@ func (f *Fosite) NewTokenMigrationRequest(ctx context.Context, r *http.Request, 
 	}
 
 	if !found {
-		return errors.WithStack(ErrInvalidRequest)
+		return errors.WithStack(errors.Wrap(ErrInvalidRequest, "No handlers"))
 	}
 
 	return nil
 }
 
 func (f *Fosite) WriteTokenMigrationResponse(rw http.ResponseWriter, err error) {
-	switch errors.Cause(err) {
-	case ErrInvalidRequest:
-		fallthrough
-	case ErrInvalidClient:
+	if err != nil || errors.Cause(err) != nil {
 		rw.Header().Set("Content-Type", "application/json;charset=UTF-8")
 
 		rfcerr := ErrorToRFC6749Error(err)
@@ -141,7 +146,7 @@ func (f *Fosite) WriteTokenMigrationResponse(rw http.ResponseWriter, err error) 
 
 		rw.WriteHeader(rfcerr.Code)
 		rw.Write(js)
-	default:
+	} else {
 		// 200 OK
 		rw.WriteHeader(http.StatusOK)
 	}
