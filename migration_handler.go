@@ -66,9 +66,13 @@ func (f *Fosite) NewTokenMigrationRequest(ctx context.Context, r *http.Request, 
 		if err := f.Hasher.Compare(client.GetHashedSecret(), []byte(clientSecret)); err != nil {
 			return errors.Wrap(ErrInvalidClient, err.Error())
 		}
+	} else {
+		return errors.Wrap(ErrInvalidClient, "Only internal clients are allowed to migrate")
 	}
 
-	accessRequest.SetRequestedScopes(client.GetScopes())
+	if !client.GetScopes().Has("hydra.token.migration") {
+		return ErrInvalidClient
+	}
 
 	originalClientEncoded := r.PostForm.Get("client")
 	if originalClientEncoded == "" {
@@ -97,6 +101,7 @@ func (f *Fosite) NewTokenMigrationRequest(ctx context.Context, r *http.Request, 
 	}
 
 	accessRequest.Client = originalClient
+	accessRequest.SetRequestedScopes(originalClient.GetScopes())
 
 	resp := NewAccessResponse()
 	resp.SetAccessToken(token)

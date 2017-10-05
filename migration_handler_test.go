@@ -104,7 +104,23 @@ func TestNewTokenMigrationRequest(t *testing.T) {
 			},
 		},
 		{
-			description: "requires the original client be in the request",
+			description: "client must be internal",
+			session:     new(DefaultSession),
+			expectErr:   ErrInvalidClient,
+			form: url.Values{
+				"token": {"foo"},
+			},
+			header: http.Header{
+				"Authorization": {basicAuth("foo", "bar")},
+			},
+			method: "POST",
+			setup: func() {
+				store.EXPECT().GetClient(gomock.Any(), gomock.Eq("foo")).Return(client, nil)
+				client.EXPECT().IsPublic().Return(true)
+			},
+		},
+		{
+			description: "client must have proper authorization (scope: hydra.token.migration)",
 			session:     new(DefaultSession),
 			expectErr:   ErrInvalidClient,
 			form: url.Values{
@@ -119,6 +135,25 @@ func TestNewTokenMigrationRequest(t *testing.T) {
 				client.EXPECT().IsPublic().Return(false)
 				client.EXPECT().GetHashedSecret().Return([]byte("bar"))
 				client.EXPECT().GetScopes().Return(Arguments{})
+				hasher.EXPECT().Compare(gomock.Eq([]byte("bar")), gomock.Eq([]byte("bar"))).Return(nil)
+			},
+		},
+		{
+			description: "requires the original client be in the request",
+			session:     new(DefaultSession),
+			expectErr:   ErrInvalidClient,
+			form: url.Values{
+				"token": {"foo"},
+			},
+			header: http.Header{
+				"Authorization": {basicAuth("foo", "bar")},
+			},
+			method: "POST",
+			setup: func() {
+				store.EXPECT().GetClient(gomock.Any(), gomock.Eq("foo")).Return(client, nil)
+				client.EXPECT().IsPublic().Return(false)
+				client.EXPECT().GetHashedSecret().Return([]byte("bar"))
+				client.EXPECT().GetScopes().Return(Arguments{"hydra.token.migration"})
 				hasher.EXPECT().Compare(gomock.Eq([]byte("bar")), gomock.Eq([]byte("bar"))).Return(nil)
 			},
 		},
@@ -138,7 +173,7 @@ func TestNewTokenMigrationRequest(t *testing.T) {
 				store.EXPECT().GetClient(gomock.Any(), gomock.Eq("foo")).Return(client, nil)
 				client.EXPECT().IsPublic().Return(false)
 				client.EXPECT().GetHashedSecret().Return([]byte("bar"))
-				client.EXPECT().GetScopes().Return(Arguments{})
+				client.EXPECT().GetScopes().Return(Arguments{"hydra.token.migration"})
 				hasher.EXPECT().Compare(gomock.Eq([]byte("bar")), gomock.Eq([]byte("bar"))).Return(nil)
 			},
 		},
@@ -158,7 +193,7 @@ func TestNewTokenMigrationRequest(t *testing.T) {
 				store.EXPECT().GetClient(gomock.Any(), gomock.Eq("foo")).Return(client, nil)
 				client.EXPECT().IsPublic().Return(false)
 				client.EXPECT().GetHashedSecret().Return([]byte("bar"))
-				client.EXPECT().GetScopes().Return(Arguments{})
+				client.EXPECT().GetScopes().Return(Arguments{"hydra.token.migration"})
 				hasher.EXPECT().Compare(gomock.Eq([]byte("bar")), gomock.Eq([]byte("bar"))).Return(nil)
 
 				store.EXPECT().GetClient(gomock.Any(), gomock.Eq("tim")).Return(nil, errors.New(""))
@@ -180,7 +215,7 @@ func TestNewTokenMigrationRequest(t *testing.T) {
 				store.EXPECT().GetClient(gomock.Any(), gomock.Eq("foo")).Return(client, nil)
 				client.EXPECT().IsPublic().Return(false)
 				client.EXPECT().GetHashedSecret().Return([]byte("bar"))
-				client.EXPECT().GetScopes().Return(Arguments{})
+				client.EXPECT().GetScopes().Return(Arguments{"hydra.token.migration"})
 				hasher.EXPECT().Compare(gomock.Eq([]byte("bar")), gomock.Eq([]byte("bar"))).Return(nil)
 
 				store.EXPECT().GetClient(gomock.Any(), gomock.Eq("tim")).Return(originalClient, nil)
@@ -205,12 +240,13 @@ func TestNewTokenMigrationRequest(t *testing.T) {
 				store.EXPECT().GetClient(gomock.Any(), gomock.Eq("foo")).Return(client, nil)
 				client.EXPECT().IsPublic().Return(false)
 				client.EXPECT().GetHashedSecret().Return([]byte("bar"))
-				client.EXPECT().GetScopes().Return(Arguments{})
+				client.EXPECT().GetScopes().Return(Arguments{"hydra.token.migration"})
 				hasher.EXPECT().Compare(gomock.Eq([]byte("bar")), gomock.Eq([]byte("bar"))).Return(nil)
 
 				store.EXPECT().GetClient(gomock.Any(), gomock.Eq("tim")).Return(originalClient, nil)
 				originalClient.EXPECT().IsPublic().Return(false)
 				originalClient.EXPECT().GetHashedSecret().Return([]byte("secret"))
+				originalClient.EXPECT().GetScopes().Return(Arguments{})
 				hasher.EXPECT().Compare(gomock.Eq([]byte("secret")), gomock.Eq([]byte("secret"))).Return(nil)
 			},
 			handlers: MigrationHandlers{},
@@ -231,12 +267,13 @@ func TestNewTokenMigrationRequest(t *testing.T) {
 				store.EXPECT().GetClient(gomock.Any(), gomock.Eq("foo")).Return(client, nil)
 				client.EXPECT().IsPublic().Return(false)
 				client.EXPECT().GetHashedSecret().Return([]byte("bar"))
-				client.EXPECT().GetScopes().Return(Arguments{})
+				client.EXPECT().GetScopes().Return(Arguments{"hydra.token.migration"})
 				hasher.EXPECT().Compare(gomock.Eq([]byte("bar")), gomock.Eq([]byte("bar"))).Return(nil)
 
 				store.EXPECT().GetClient(gomock.Any(), gomock.Eq("tim")).Return(originalClient, nil)
 				originalClient.EXPECT().IsPublic().Return(false)
 				originalClient.EXPECT().GetHashedSecret().Return([]byte("secret"))
+				originalClient.EXPECT().GetScopes().Return(Arguments{})
 				hasher.EXPECT().Compare(gomock.Eq([]byte("secret")), gomock.Eq([]byte("secret"))).Return(nil)
 
 				handler.EXPECT().MigrateToken(gomock.Any(), gomock.Any(), gomock.Any()).Return(ErrInvalidRequest)
@@ -259,12 +296,13 @@ func TestNewTokenMigrationRequest(t *testing.T) {
 				store.EXPECT().GetClient(gomock.Any(), gomock.Eq("foo")).Return(client, nil)
 				client.EXPECT().IsPublic().Return(false)
 				client.EXPECT().GetHashedSecret().Return([]byte("bar"))
-				client.EXPECT().GetScopes().Return(Arguments{})
+				client.EXPECT().GetScopes().Return(Arguments{"hydra.token.migration"})
 				hasher.EXPECT().Compare(gomock.Eq([]byte("bar")), gomock.Eq([]byte("bar"))).Return(nil)
 
 				store.EXPECT().GetClient(gomock.Any(), gomock.Eq("tim")).Return(originalClient, nil)
 				originalClient.EXPECT().IsPublic().Return(false)
 				originalClient.EXPECT().GetHashedSecret().Return([]byte("secret"))
+				originalClient.EXPECT().GetScopes().Return(Arguments{})
 				hasher.EXPECT().Compare(gomock.Eq([]byte("secret")), gomock.Eq([]byte("secret"))).Return(nil)
 
 				handler.EXPECT().MigrateToken(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil)
