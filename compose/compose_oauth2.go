@@ -40,6 +40,8 @@ func OAuth2TokenMigrationFactory(config *Config, storage interface{}, strategy i
 		RefreshTokenStrategy: strategy.(oauth2.RefreshTokenStrategy),
 		AccessTokenStorage:   storage.(oauth2.AccessTokenStorage),
 		RefreshTokenStorage:  storage.(oauth2.RefreshTokenStorage),
+		AccessTokenLifespan:  config.GetAccessTokenLifespan(),
+		RefreshTokenLifespan: config.GetRefreshTokenLifespan(),
 	}
 }
 

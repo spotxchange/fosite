@@ -32,30 +32,21 @@ func TestNewTokenMigrationRequest(t *testing.T) {
 		method      string
 		expectErr   error
 		handlers    MigrationHandlers
-		session     Session
 	}{
-		// {
-		// 	description: "requires a session",
-		// 	setup:       func() {},
-		// 	expectErr:   errors.New("Session must not be nil"),
-		// },
 		{
 			description: "must be a POST",
 			setup:       func() {},
-			session:     new(DefaultSession),
 			expectErr:   ErrInvalidRequest,
 		},
 		{
 			description: "MUST be a POST",
 			setup:       func() {},
-			session:     new(DefaultSession),
 			expectErr:   ErrInvalidRequest,
 			method:      "GET",
 		},
 		{
 			description: "requires a token to migrate",
 			setup:       func() {},
-			session:     new(DefaultSession),
 			expectErr:   ErrInvalidTokenFormat,
 			form:        url.Values{},
 			method:      "POST",
@@ -63,7 +54,6 @@ func TestNewTokenMigrationRequest(t *testing.T) {
 		{
 			description: "requires a valid authorization",
 			setup:       func() {},
-			session:     new(DefaultSession),
 			expectErr:   ErrInvalidRequest,
 			form: url.Values{
 				"token": {"foo"},
@@ -72,7 +62,6 @@ func TestNewTokenMigrationRequest(t *testing.T) {
 		},
 		{
 			description: "requires the client be in the system",
-			session:     new(DefaultSession),
 			expectErr:   ErrInvalidClient,
 			form: url.Values{
 				"token": {"foo"},
@@ -87,7 +76,6 @@ func TestNewTokenMigrationRequest(t *testing.T) {
 		},
 		{
 			description: "requires the client credentials match",
-			session:     new(DefaultSession),
 			expectErr:   ErrInvalidClient,
 			form: url.Values{
 				"token": {"foo"},
@@ -105,7 +93,6 @@ func TestNewTokenMigrationRequest(t *testing.T) {
 		},
 		{
 			description: "client must be internal",
-			session:     new(DefaultSession),
 			expectErr:   ErrInvalidClient,
 			form: url.Values{
 				"token": {"foo"},
@@ -121,7 +108,6 @@ func TestNewTokenMigrationRequest(t *testing.T) {
 		},
 		{
 			description: "client must have proper authorization (scope: hydra.token.migration)",
-			session:     new(DefaultSession),
 			expectErr:   ErrInvalidClient,
 			form: url.Values{
 				"token": {"foo"},
@@ -140,7 +126,6 @@ func TestNewTokenMigrationRequest(t *testing.T) {
 		},
 		{
 			description: "requires the original client be in the request",
-			session:     new(DefaultSession),
 			expectErr:   ErrInvalidClient,
 			form: url.Values{
 				"token": {"foo"},
@@ -159,7 +144,6 @@ func TestNewTokenMigrationRequest(t *testing.T) {
 		},
 		{
 			description: "requires the original client be valid",
-			session:     new(DefaultSession),
 			expectErr:   ErrInvalidClient,
 			form: url.Values{
 				"token":  {"foo"},
@@ -179,7 +163,6 @@ func TestNewTokenMigrationRequest(t *testing.T) {
 		},
 		{
 			description: "requires the original client be in the system",
-			session:     new(DefaultSession),
 			expectErr:   ErrInvalidClient,
 			form: url.Values{
 				"token":  {"foo"},
@@ -201,7 +184,6 @@ func TestNewTokenMigrationRequest(t *testing.T) {
 		},
 		{
 			description: "requires the original client credentials match",
-			session:     new(DefaultSession),
 			expectErr:   ErrInvalidClient,
 			form: url.Values{
 				"token":  {"foo"},
@@ -226,7 +208,6 @@ func TestNewTokenMigrationRequest(t *testing.T) {
 		},
 		{
 			description: "requires handlers be present",
-			session:     new(DefaultSession),
 			expectErr:   ErrInvalidRequest,
 			form: url.Values{
 				"token":  {"foo"},
@@ -253,7 +234,6 @@ func TestNewTokenMigrationRequest(t *testing.T) {
 		},
 		{
 			description: "requires handlers return succes",
-			session:     new(DefaultSession),
 			expectErr:   ErrInvalidRequest,
 			form: url.Values{
 				"token":  {"foo"},
@@ -282,7 +262,6 @@ func TestNewTokenMigrationRequest(t *testing.T) {
 		},
 		{
 			description: "works with all the right inputs and success",
-			session:     new(DefaultSession),
 			expectErr:   nil,
 			form: url.Values{
 				"token":  {"foo"},
@@ -319,7 +298,7 @@ func TestNewTokenMigrationRequest(t *testing.T) {
 		c.setup()
 		ctx := NewContext()
 		fosite.MigrationHandlers = c.handlers
-		err := fosite.NewTokenMigrationRequest(ctx, r, c.session)
+		err := fosite.NewTokenMigrationRequest(ctx, r)
 		assert.True(t, errors.Cause(err) == c.expectErr, "(%d) %s\nwant: %s \ngot: %s", k, c.description, c.expectErr, err)
 		t.Logf("Passed test case %d", k)
 	}

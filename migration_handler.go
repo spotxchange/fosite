@@ -8,9 +8,15 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"time"
 
 	"github.com/pkg/errors"
 )
+
+type migrationSession struct {
+	DefaultSession `json:"idToken"`
+	Extras         map[string]interface{} `json:"extra"`
+}
 
 // NewTokenMigrationRequest handles incoming token migration requests and
 // validates various parameters
@@ -22,12 +28,8 @@ import (
 // Client that originally was associated with the token in the other system is
 // then verified, full client migration must be done first. Lastly the old
 // token is translated and inserted into the new system
-func (f *Fosite) NewTokenMigrationRequest(ctx context.Context, r *http.Request, session Session) error {
+func (f *Fosite) NewTokenMigrationRequest(ctx context.Context, r *http.Request) error {
 	var err error
-	if session == nil {
-		return errors.New("Session must not be nil")
-	}
-	accessRequest := NewAccessRequest(session)
 
 	if r.Method != "POST" {
 		return errors.Wrap(ErrInvalidRequest, "HTTP method is not POST")
@@ -41,10 +43,6 @@ func (f *Fosite) NewTokenMigrationRequest(ctx context.Context, r *http.Request, 
 	}
 
 	refreshToken := r.PostForm.Get("refresh_token")
-
-	accessRequest.Form = r.PostForm
-
-	accessRequest.GrantedScopes = removeEmpty(strings.Split(r.PostForm.Get("scope"), " "))
 
 	// Decode client_id and client_secret which should be in "application/x-www-form-urlencoded" format.
 	var clientID, clientSecret string
@@ -99,9 +97,22 @@ func (f *Fosite) NewTokenMigrationRequest(ctx context.Context, r *http.Request, 
 			return errors.Wrap(ErrInvalidClient, err.Error())
 		}
 	}
+	session := &migrationSession{
+		DefaultSession: DefaultSession{
+			Subject:   orgClientID,
+			Username:  r.PostForm.Get("username"),
+			ExpiresAt: make(map[TokenType]time.Time),
+		},
+		Extras: map[string]interface{}{
+			"migrated": true,
+		},
+	}
 
+	accessRequest := NewAccessRequest(session)
 	accessRequest.Client = originalClient
 	accessRequest.SetRequestedScopes(originalClient.GetScopes())
+	accessRequest.Form = r.PostForm
+	accessRequest.GrantedScopes = removeEmpty(strings.Split(r.PostForm.Get("scope"), " "))
 
 	resp := NewAccessResponse()
 
@@ -114,6 +125,7 @@ func (f *Fosite) NewTokenMigrationRequest(ctx context.Context, r *http.Request, 
 
 	resp.SetAccessToken(token)
 	resp.SetExtra("refresh_token", refreshToken)
+	resp.SetExtra("migrated", true)
 
 	var found bool
 	for _, migrater := range f.MigrationHandlers {

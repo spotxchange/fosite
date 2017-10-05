@@ -2,6 +2,7 @@ package oauth2
 
 import (
 	"context"
+	"time"
 
 	"github.com/ory/fosite"
 	"github.com/pkg/errors"
@@ -16,6 +17,9 @@ type TokenMigrationHandler struct {
 	AccessTokenStrategy AccessTokenStrategy
 
 	RefreshTokenStrategy RefreshTokenStrategy
+
+	AccessTokenLifespan  time.Duration
+	RefreshTokenLifespan time.Duration
 }
 
 // MigrateToken handles generating the token signatures and storing the tokens
@@ -34,6 +38,7 @@ func (c *TokenMigrationHandler) MigrateToken(ctx context.Context, requester fosi
 		return errors.Wrap(fosite.ErrInvalidRequest, "The access token is in a bad format")
 	}
 
+	requester.GetSession().SetExpiresAt(fosite.AccessToken, time.Now().Add(c.AccessTokenLifespan))
 	if err = c.AccessTokenStorage.CreateAccessTokenSession(ctx, tokenSignature, requester); err != nil {
 		return err
 	}
@@ -42,6 +47,9 @@ func (c *TokenMigrationHandler) MigrateToken(ctx context.Context, requester fosi
 		if refreshTokenSignature == "" {
 			return errors.Wrap(fosite.ErrInvalidRequest, "The refresh token is in a bad format")
 		}
+		if c.RefreshTokenLifespan > 0 {
+			requester.GetSession().SetExpiresAt(fosite.RefreshToken, time.Now().Add(c.AccessTokenLifespan))
+		}
 		if err = c.RefreshTokenStorage.CreateRefreshTokenSession(ctx, refreshTokenSignature, requester); err != nil {
 			if ex := c.AccessTokenStorage.DeleteAccessTokenSession(ctx, tokenSignature); ex != nil {
 				err = errors.Wrap(err, ex.Error())
@@ -49,5 +57,6 @@ func (c *TokenMigrationHandler) MigrateToken(ctx context.Context, requester fosi
 			return err
 		}
 	}
+
 	return nil
 }

@@ -5,6 +5,7 @@ import (
 
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/ory/fosite"
 	enigma "github.com/ory/fosite/token/hmac"
@@ -38,6 +39,10 @@ func (h HMACSHAStrategy) ValidateAccessToken(_ context.Context, r fosite.Request
 	}
 	if !exp.IsZero() && exp.Before(time.Now()) {
 		return errors.Wrap(fosite.ErrTokenExpired, fmt.Sprintf("Access token expired at %s", exp))
+	}
+	// Worried about this... But not sure what else to do at this moment
+	if strings.HasPrefix(token, ".") {
+		return nil
 	}
 	return h.Enigma.Validate(token)
 }

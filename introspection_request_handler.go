@@ -121,7 +121,9 @@ func (f *Fosite) NewIntrospectionRequest(ctx context.Context, r *http.Request, s
 			return &IntrospectionResponse{Active: false}, errors.Wrap(ErrRequestUnauthorized, "HTTP Authorization header missing, malformed or credentials used are invalid")
 		}
 	}
-
+	if r.PostForm.Get("migrated") == "true" {
+		token = "." + token
+	}
 	ar, err := f.IntrospectToken(ctx, token, TokenType(tokenType), session, strings.Split(scope, " ")...)
 	if err != nil {
 		return &IntrospectionResponse{Active: false}, errors.Wrapf(ErrInactiveToken, "Validator returned error %s", err.Error())

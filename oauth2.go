@@ -140,7 +140,7 @@ type OAuth2Provider interface {
 	WriteIntrospectionResponse(rw http.ResponseWriter, r IntrospectionResponder)
 
 	// NewTokenMigrationRequest initiates a token migration
-	NewTokenMigrationRequest(ctx context.Context, r *http.Request, session Session) error
+	NewTokenMigrationRequest(ctx context.Context, r *http.Request) error
 
 	// WriteTokenMigrationError responds with an error if token migration failed as defined in
 	WriteTokenMigrationResponse(rw http.ResponseWriter, err error)
