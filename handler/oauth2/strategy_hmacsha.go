@@ -40,11 +40,13 @@ func (h HMACSHAStrategy) ValidateAccessToken(_ context.Context, r fosite.Request
 	if !exp.IsZero() && exp.Before(time.Now()) {
 		return errors.Wrap(fosite.ErrTokenExpired, fmt.Sprintf("Access token expired at %s", exp))
 	}
-	// Worried about this... But not sure what else to do at this moment
-	if strings.HasPrefix(token, ".") {
-		return nil
+
+	if err = h.Enigma.Validate(token); err != nil {
+		if split := strings.Split(token, "."); len(split) == 2 && split[0] == split[1] {
+			return nil
+		}
 	}
-	return h.Enigma.Validate(token)
+	return
 }
 
 func (h HMACSHAStrategy) GenerateRefreshToken(_ context.Context, _ fosite.Requester) (token string, signature string, err error) {
