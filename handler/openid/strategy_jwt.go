@@ -24,9 +24,9 @@ import (
 	jwtgo "github.com/dgrijalva/jwt-go"
 	"github.com/mohae/deepcopy"
 	"github.com/pborman/uuid"
+	"github.com/ory/fosite"
+	"github.com/ory/fosite/token/jwt"
 	"github.com/pkg/errors"
-	"github.com/spotxchange/fosite"
-	"github.com/spotxchange/fosite/token/jwt"
 )
 
 const defaultExpiryTime = time.Hour

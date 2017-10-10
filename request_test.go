@@ -19,7 +19,7 @@ import (
 	"testing"
 	"time"
 
-	. "github.com/spotxchange/fosite"
+	. "github.com/ory/fosite"
 	"github.com/stretchr/testify/assert"
 )
 

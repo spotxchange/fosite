@@ -17,7 +17,6 @@ package oauth2
 import (
 	"context"
 
-	"github.com/ory/fosite"
 	"github.com/spotxchange/fosite"
 )
 

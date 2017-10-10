@@ -197,7 +197,7 @@ where updated to `ory/fosite`.
 
 #### `ClientManager`
 
-The [`ClientManager`](https://github.com/spotxchange/fosite/blob/master/client_manager.go) interface
+The [`ClientManager`](https://github.com/ory/fosite/blob/master/client_manager.go) interface
 changed, as a context parameter was added:
 
 ```go
@@ -211,7 +211,7 @@ type ClientManager interface {
 
 #### `OAuth2Provider`
 
-The [OAuth2Provider](https://github.com/spotxchange/fosite/blob/master/oauth2.go) interface changed,
+The [OAuth2Provider](https://github.com/ory/fosite/blob/master/oauth2.go) interface changed,
 as the need for passing down `*http.Request` was removed. This is justifiable
 because `NewAuthorizeRequest` and `NewAccessRequest` already contain `*http.Request`.
 
@@ -231,7 +231,7 @@ The public api of those two methods changed:
 Breaking changes:
 
 * Replaced `"golang.org/x/net/context"` with `"context"`.
-* Move the repo from `github.com/ory-am/fosite` to `github.com/spotxchange/fosite`
+* Move the repo from `github.com/ory-am/fosite` to `github.com/ory/fosite`
 
 ## 0.6.0
 
