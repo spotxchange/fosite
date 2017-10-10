@@ -5,8 +5,8 @@ import (
 	"encoding/gob"
 	"time"
 
-	"github.com/ory/fosite"
-	"github.com/ory/fosite/token/jwt"
+	"github.com/spotxchange/fosite"
+	"github.com/spotxchange/fosite/token/jwt"
 )
 
 type JWTSessionContainer interface {
