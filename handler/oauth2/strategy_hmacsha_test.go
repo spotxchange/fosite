@@ -20,9 +20,9 @@ import (
 	"time"
 
 	"fmt"
-
-	"github.com/ory/fosite"
-	"github.com/ory/fosite/token/hmac"
+	
+	"github.com/spotxchange/fosite"
+	"github.com/spotxchange/fosite/token/hmac"
 	"github.com/stretchr/testify/assert"
 )
 

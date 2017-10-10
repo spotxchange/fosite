@@ -18,7 +18,7 @@ import (
 	"testing"
 	"time"
 
-	. "github.com/ory/fosite/token/jwt"
+	. "github.com/spotxchange/fosite/token/jwt"
 	"github.com/stretchr/testify/assert"
 )
 

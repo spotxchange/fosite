@@ -18,9 +18,9 @@ import (
 	"context"
 
 	"fmt"
-
-	"github.com/ory/fosite"
+	
 	"github.com/pkg/errors"
+	"github.com/spotxchange/fosite"
 )
 
 type CoreValidator struct {

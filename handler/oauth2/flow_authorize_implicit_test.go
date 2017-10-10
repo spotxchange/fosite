@@ -21,10 +21,10 @@ import (
 	"fmt"
 
 	"github.com/golang/mock/gomock"
-	"github.com/ory/fosite"
-	"github.com/ory/fosite/internal"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/require"
+	"github.com/spotxchange/fosite"
+	"github.com/spotxchange/fosite/internal"
 )
 
 func TestAuthorizeImplicit_EndpointHandler(t *testing.T) {

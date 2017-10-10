@@ -22,8 +22,8 @@ import (
 	"fmt"
 
 	"github.com/golang/mock/gomock"
-	. "github.com/ory/fosite"
-	. "github.com/ory/fosite/internal"
+	. "github.com/spotxchange/fosite"
+	. "github.com/spotxchange/fosite/internal"
 	"github.com/stretchr/testify/assert"
 )
 

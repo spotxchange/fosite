@@ -17,11 +17,6 @@ package oauth2
 import (
 	"net/url"
 	"testing"
-	//"time"
-
-	//"github.com/golang/mock/gomock"
-	"github.com/ory/fosite"
-	//"github.com/ory/fosite/internal"
 	"time"
 
 	"context"
@@ -30,6 +25,8 @@ import (
 
 	"github.com/ory/fosite/storage"
 	"github.com/pkg/errors"
+	"github.com/spotxchange/fosite"
+	"github.com/spotxchange/fosite/internal"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
