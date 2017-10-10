@@ -1,9 +1,9 @@
 package compose
 
 import (
-	"github.com/spotxchange/fosite"
-	"github.com/spotxchange/fosite/handler/oauth2"
-	"github.com/spotxchange/fosite/handler/openid"
+	"github.com/ory/fosite"
+	"github.com/ory/fosite/handler/oauth2"
+	"github.com/ory/fosite/handler/openid"
 )
 
 // OpenIDConnectExplicitFactory creates an OpenID Connect explicit ("authorize code flow") grant handler. You must add this handler

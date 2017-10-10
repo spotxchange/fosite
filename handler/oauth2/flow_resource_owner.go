@@ -5,8 +5,8 @@ import (
 
 	"context"
 
+	"github.com/ory/fosite"
 	"github.com/pkg/errors"
-	"github.com/spotxchange/fosite"
 )
 
 type ResourceOwnerPasswordCredentialsGrantHandler struct {

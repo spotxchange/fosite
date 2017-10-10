@@ -9,8 +9,8 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/ory/fosite"
 	"github.com/pkg/errors"
-	"github.com/spotxchange/fosite"
 )
 
 // HMACStrategy is responsible for generating and validating challenges.

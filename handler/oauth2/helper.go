@@ -5,7 +5,7 @@ import (
 
 	"context"
 
-	"github.com/spotxchange/fosite"
+	"github.com/ory/fosite"
 )
 
 type HandleHelper struct {

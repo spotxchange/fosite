@@ -1,4 +1,4 @@
-package: github.com/spotxchange/fosite
+package: github.com/ory/fosite
 import:
 - package: github.com/asaskevich/govalidator
   version: ~6.0.0

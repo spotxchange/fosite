@@ -4,8 +4,8 @@ import (
 	"context"
 	"time"
 
+	"github.com/ory/fosite"
 	"github.com/pkg/errors"
-	"github.com/spotxchange/fosite"
 )
 
 // HandleTokenEndpointRequest implements

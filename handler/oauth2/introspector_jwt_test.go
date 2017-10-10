@@ -5,10 +5,10 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/ory/fosite"
+	"github.com/ory/fosite/internal"
+	"github.com/ory/fosite/token/jwt"
 	"github.com/pkg/errors"
-	"github.com/spotxchange/fosite"
-	"github.com/spotxchange/fosite/internal"
-	"github.com/spotxchange/fosite/token/jwt"
 	"github.com/stretchr/testify/assert"
 )
 

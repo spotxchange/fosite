@@ -3,7 +3,7 @@ package openid
 import (
 	"context"
 
-	"github.com/spotxchange/fosite"
+	"github.com/ory/fosite"
 )
 
 var ErrNoSessionFound = fosite.ErrNotFound
