@@ -7,9 +7,9 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/ory/fosite"
-	enigma "github.com/ory/fosite/token/hmac"
 	"github.com/pkg/errors"
+	"github.com/spotxchange/fosite"
+	enigma "github.com/spotxchange/fosite/token/hmac"
 )
 
 type HMACSHAStrategy struct {

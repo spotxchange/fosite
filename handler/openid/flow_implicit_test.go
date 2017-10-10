@@ -5,11 +5,11 @@ import (
 	"time"
 
 	"github.com/golang/mock/gomock"
-	"github.com/ory/fosite"
-	"github.com/ory/fosite/handler/oauth2"
-	"github.com/ory/fosite/storage"
-	"github.com/ory/fosite/token/jwt"
 	"github.com/pkg/errors"
+	"github.com/spotxchange/fosite"
+	"github.com/spotxchange/fosite/handler/oauth2"
+	"github.com/spotxchange/fosite/storage"
+	"github.com/spotxchange/fosite/token/jwt"
 	"github.com/stretchr/testify/assert"
 )
 
