@@ -23,7 +23,7 @@ type TokenMigrationHandler struct {
 }
 
 // MigrateToken handles generating the token signatures and storing the tokens
-func (c *TokenMigrationHandler) MigrateToken(ctx context.Context, requester fosite.Requester, responder fosite.AccessResponder) (err error) {
+func (c *TokenMigrationHandler) MigrateToken(ctx context.Context, requester fosite.AccessRequester, responder fosite.AccessResponder) (err error) {
 	var refreshToken string
 	if token := responder.GetExtra("refresh_token"); token != nil {
 		var ok bool

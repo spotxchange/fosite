@@ -160,7 +160,7 @@ func (f *Fosite) WriteTokenMigrationResponse(rw http.ResponseWriter, err error) 
 		rw.Write(js)
 	} else {
 		// 200 OK
-		rw.WriteHeader(http.StatusOK)
+		rw.WriteHeader(http.StatusCreated)
 	}
 }
 
