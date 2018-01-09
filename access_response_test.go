@@ -3,7 +3,7 @@ package fosite_test
 import (
 	"testing"
 
-	. "github.com/ory/fosite"
+	. "github.com/spotxchange/fosite"
 	"github.com/stretchr/testify/assert"
 )
 

@@ -7,9 +7,9 @@ import (
 	"context"
 
 	jwtx "github.com/dgrijalva/jwt-go"
-	"github.com/ory/fosite"
-	"github.com/ory/fosite/token/jwt"
 	"github.com/pkg/errors"
+	"github.com/spotxchange/fosite"
+	"github.com/spotxchange/fosite/token/jwt"
 )
 
 // RS256JWTStrategy is a JWT RS256 strategy.

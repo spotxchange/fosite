@@ -3,14 +3,14 @@ package compose
 import (
 	"crypto/rsa"
 
-	"github.com/ory/fosite"
+	"github.com/spotxchange/fosite"
 )
 
 type Factory func(config *Config, storage interface{}, strategy interface{}) interface{}
 
 // Compose takes a config, a storage, a strategy and handlers to instantiate an OAuth2Provider:
 //
-//  import "github.com/ory/fosite/compose"
+//  import "github.com/spotxchange/fosite/compose"
 //
 //  // var storage = new(MyFositeStorage)
 //  var config = Config {
@@ -42,6 +42,7 @@ func Compose(config *Config, storage interface{}, strategy interface{}, hasher f
 		RevocationHandlers:         fosite.RevocationHandlers{},
 		Hasher:                     hasher,
 		ScopeStrategy:              fosite.HierarchicScopeStrategy,
+		MigrationHandlers:          fosite.MigrationHandlers{},
 	}
 
 	for _, factory := range factories {
@@ -57,6 +58,9 @@ func Compose(config *Config, storage interface{}, strategy interface{}, hasher f
 		}
 		if rh, ok := res.(fosite.RevocationHandler); ok {
 			f.RevocationHandlers.Append(rh)
+		}
+		if rh, ok := res.(fosite.MigrationHandler); ok {
+			f.MigrationHandlers.Append(rh)
 		}
 	}
 

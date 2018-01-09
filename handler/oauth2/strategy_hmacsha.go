@@ -5,10 +5,11 @@ import (
 
 	"context"
 	"fmt"
+	"strings"
 
-	"github.com/ory/fosite"
-	enigma "github.com/ory/fosite/token/hmac"
 	"github.com/pkg/errors"
+	"github.com/spotxchange/fosite"
+	enigma "github.com/spotxchange/fosite/token/hmac"
 )
 
 type HMACSHAStrategy struct {
@@ -39,7 +40,16 @@ func (h HMACSHAStrategy) ValidateAccessToken(_ context.Context, r fosite.Request
 	if !exp.IsZero() && exp.Before(time.Now()) {
 		return errors.Wrap(fosite.ErrTokenExpired, fmt.Sprintf("Access token expired at %s", exp))
 	}
-	return h.Enigma.Validate(token)
+
+	if err = h.Enigma.Validate(token); err != nil {
+		// So... We know this isn't technically a valid token, but it's also in our DB...
+		// Meaning it was migrated in via the api. To make sure we're still being safe(ish),
+		// migrated tokens have to be passed in as `[token].[token]`.
+		if split := strings.Split(token, "."); len(split) == 2 && split[0] == split[1] {
+			return nil
+		}
+	}
+	return
 }
 
 func (h HMACSHAStrategy) GenerateRefreshToken(_ context.Context, _ fosite.Requester) (token string, signature string, err error) {

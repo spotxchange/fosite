@@ -50,3 +50,11 @@ type RevocationHandler interface {
 	// RevokeToken handles access and refresh token revocation.
 	RevokeToken(ctx context.Context, token string, tokenType TokenType) error
 }
+
+// MigrationHandler is the interface that allows tokens to be migrated from a previous
+// OAuth 2 provider
+//
+// 
+type MigrationHandler interface {
+	MigrateToken(ctx context.Context, requester AccessRequester, responder AccessResponder) error
+}
