@@ -1,3 +1,17 @@
+// Copyright © 2017 Aeneas Rekkas <aeneas+oss@aeneas.io>
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package oauth2
 
 import (
@@ -105,27 +119,27 @@ func (h *RS256JWTStrategy) validate(token string) (t *jwtx.Token, err error) {
 		if e, ok := errors.Cause(err).(*jwtx.ValidationError); ok {
 			switch e.Errors {
 			case jwtx.ValidationErrorMalformed:
-				err = errors.Wrap(fosite.ErrInvalidTokenFormat, err.Error())
+				err = errors.WithStack(fosite.ErrInvalidTokenFormat.WithDebug(err.Error()))
 			case jwtx.ValidationErrorUnverifiable:
-				err = errors.Wrap(fosite.ErrTokenSignatureMismatch, err.Error())
+				err = errors.WithStack(fosite.ErrTokenSignatureMismatch.WithDebug(err.Error()))
 			case jwtx.ValidationErrorSignatureInvalid:
-				err = errors.Wrap(fosite.ErrTokenSignatureMismatch, err.Error())
+				err = errors.WithStack(fosite.ErrTokenSignatureMismatch.WithDebug(err.Error()))
 			case jwtx.ValidationErrorAudience:
-				err = errors.Wrap(fosite.ErrTokenClaim, err.Error())
+				err = errors.WithStack(fosite.ErrTokenClaim.WithDebug(err.Error()))
 			case jwtx.ValidationErrorExpired:
-				err = errors.Wrap(fosite.ErrTokenExpired, err.Error())
+				err = errors.WithStack(fosite.ErrTokenExpired.WithDebug(err.Error()))
 			case jwtx.ValidationErrorIssuedAt:
-				err = errors.Wrap(fosite.ErrTokenClaim, err.Error())
+				err = errors.WithStack(fosite.ErrTokenClaim.WithDebug(err.Error()))
 			case jwtx.ValidationErrorIssuer:
-				err = errors.Wrap(fosite.ErrTokenClaim, err.Error())
+				err = errors.WithStack(fosite.ErrTokenClaim.WithDebug(err.Error()))
 			case jwtx.ValidationErrorNotValidYet:
-				err = errors.Wrap(fosite.ErrTokenClaim, err.Error())
+				err = errors.WithStack(fosite.ErrTokenClaim.WithDebug(err.Error()))
 			case jwtx.ValidationErrorId:
-				err = errors.Wrap(fosite.ErrTokenClaim, err.Error())
+				err = errors.WithStack(fosite.ErrTokenClaim.WithDebug(err.Error()))
 			case jwtx.ValidationErrorClaimsInvalid:
-				err = errors.Wrap(fosite.ErrTokenClaim, err.Error())
+				err = errors.WithStack(fosite.ErrTokenClaim.WithDebug(err.Error()))
 			default:
-				err = errors.Wrap(fosite.ErrRequestUnauthorized, err.Error())
+				err = errors.WithStack(fosite.ErrRequestUnauthorized.WithDebug(err.Error()))
 			}
 		}
 	}
@@ -143,7 +157,7 @@ func (h *RS256JWTStrategy) generate(tokenType fosite.TokenType, requester fosite
 		claims.ExpiresAt = jwtSession.GetExpiresAt(tokenType)
 
 		if claims.IssuedAt.IsZero() {
-			claims.IssuedAt = time.Now()
+			claims.IssuedAt = time.Now().UTC()
 		}
 
 		if claims.Issuer == "" {

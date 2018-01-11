@@ -1,3 +1,17 @@
+// Copyright © 2017 Aeneas Rekkas <aeneas+oss@aeneas.io>
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package jwt
 
 import (
@@ -23,7 +37,7 @@ func TestHash(t *testing.T) {
 	}
 	in := []byte("foo")
 	out, err := j.Hash(in)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	assert.NotEqual(t, in, out)
 }
 
@@ -56,7 +70,7 @@ func TestAssign(t *testing.T) {
 
 func TestGenerateJWT(t *testing.T) {
 	claims := &JWTClaims{
-		ExpiresAt: time.Now().Add(time.Hour),
+		ExpiresAt: time.Now().UTC().Add(time.Hour),
 	}
 
 	j := RS256JWTStrategy{
@@ -64,45 +78,45 @@ func TestGenerateJWT(t *testing.T) {
 	}
 
 	token, sig, err := j.Generate(claims.ToMapClaims(), header)
-	require.Nil(t, err, "%s", err)
+	require.NoError(t, err)
 	require.NotNil(t, token)
 
 	sig, err = j.Validate(token)
-	require.Nil(t, err, "%s", err)
+	require.NoError(t, err)
 
 	sig, err = j.Validate(token + "." + "0123456789")
-	require.NotNil(t, err, "%s", err)
+	require.Error(t, err)
 
 	partToken := strings.Split(token, ".")[2]
 
 	sig, err = j.Validate(partToken)
-	require.NotNil(t, err, "%s", err)
+	require.Error(t, err)
 
 	// Reset private key
 	j.PrivateKey = internal.MustRSAKey()
 
 	// Lets validate the exp claim
 	claims = &JWTClaims{
-		ExpiresAt: time.Now().Add(-time.Hour),
+		ExpiresAt: time.Now().UTC().Add(-time.Hour),
 	}
 	token, sig, err = j.Generate(claims.ToMapClaims(), header)
-	require.Nil(t, err, "%s", err)
+	require.NoError(t, err)
 	require.NotNil(t, token)
 	//t.Logf("%s.%s", token, sig)
 
 	sig, err = j.Validate(token)
-	require.NotNil(t, err, "%s", err)
+	require.Error(t, err)
 
 	// Lets validate the nbf claim
 	claims = &JWTClaims{
-		NotBefore: time.Now().Add(time.Hour),
+		NotBefore: time.Now().UTC().Add(time.Hour),
 	}
 	token, sig, err = j.Generate(claims.ToMapClaims(), header)
-	require.Nil(t, err, "%s", err)
+	require.NoError(t, err)
 	require.NotNil(t, token)
 	//t.Logf("%s.%s", token, sig)
 	sig, err = j.Validate(token)
-	require.NotNil(t, err, "%s", err)
+	require.Error(t, err)
 	require.Empty(t, sig, "%s", err)
 }
 
@@ -120,7 +134,7 @@ func TestValidateSignatureRejectsJWT(t *testing.T) {
 		".foo",
 	} {
 		_, err = j.Validate(c)
-		assert.NotNil(t, err, "%s", err)
+		assert.Error(t, err)
 		t.Logf("Passed test case %d", k)
 	}
 }

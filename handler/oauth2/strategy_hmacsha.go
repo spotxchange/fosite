@@ -1,3 +1,17 @@
+// Copyright © 2017 Aeneas Rekkas <aeneas+oss@aeneas.io>
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package oauth2
 
 import (
@@ -33,11 +47,11 @@ func (h HMACSHAStrategy) GenerateAccessToken(_ context.Context, _ fosite.Request
 
 func (h HMACSHAStrategy) ValidateAccessToken(_ context.Context, r fosite.Requester, token string) (err error) {
 	var exp = r.GetSession().GetExpiresAt(fosite.AccessToken)
-	if exp.IsZero() && r.GetRequestedAt().Add(h.AccessTokenLifespan).Before(time.Now()) {
-		return errors.Wrap(fosite.ErrTokenExpired, fmt.Sprintf("Access token expired at %s", r.GetRequestedAt().Add(h.AccessTokenLifespan)))
+	if exp.IsZero() && r.GetRequestedAt().Add(h.AccessTokenLifespan).Before(time.Now().UTC()) {
+		return errors.WithStack(fosite.ErrTokenExpired.WithDebug(fmt.Sprintf("Access token expired at %s", r.GetRequestedAt().Add(h.AccessTokenLifespan))))
 	}
-	if !exp.IsZero() && exp.Before(time.Now()) {
-		return errors.Wrap(fosite.ErrTokenExpired, fmt.Sprintf("Access token expired at %s", exp))
+	if !exp.IsZero() && exp.Before(time.Now().UTC()) {
+		return errors.WithStack(fosite.ErrTokenExpired.WithDebug(fmt.Sprintf("Access token expired at %s", exp)))
 	}
 	return h.Enigma.Validate(token)
 }
@@ -56,11 +70,11 @@ func (h HMACSHAStrategy) GenerateAuthorizeCode(_ context.Context, _ fosite.Reque
 
 func (h HMACSHAStrategy) ValidateAuthorizeCode(_ context.Context, r fosite.Requester, token string) (err error) {
 	var exp = r.GetSession().GetExpiresAt(fosite.AuthorizeCode)
-	if exp.IsZero() && r.GetRequestedAt().Add(h.AuthorizeCodeLifespan).Before(time.Now()) {
-		return errors.Wrap(fosite.ErrTokenExpired, fmt.Sprintf("Authorize code expired at %s", r.GetRequestedAt().Add(h.AuthorizeCodeLifespan)))
+	if exp.IsZero() && r.GetRequestedAt().Add(h.AuthorizeCodeLifespan).Before(time.Now().UTC()) {
+		return errors.WithStack(fosite.ErrTokenExpired.WithDebug(fmt.Sprintf("Authorize code expired at %s", r.GetRequestedAt().Add(h.AuthorizeCodeLifespan))))
 	}
-	if !exp.IsZero() && exp.Before(time.Now()) {
-		return errors.Wrap(fosite.ErrTokenExpired, fmt.Sprintf("Authorize code expired at %s", exp))
+	if !exp.IsZero() && exp.Before(time.Now().UTC()) {
+		return errors.WithStack(fosite.ErrTokenExpired.WithDebug(fmt.Sprintf("Authorize code expired at %s", exp)))
 	}
 
 	return h.Enigma.Validate(token)

@@ -31,12 +31,12 @@ func (_m *MockRevocationHandler) EXPECT() *_MockRevocationHandlerRecorder {
 	return _m.recorder
 }
 
-func (_m *MockRevocationHandler) RevokeToken(_param0 context.Context, _param1 string, _param2 fosite.TokenType) error {
-	ret := _m.ctrl.Call(_m, "RevokeToken", _param0, _param1, _param2)
+func (_m *MockRevocationHandler) RevokeToken(_param0 context.Context, _param1 string, _param2 fosite.TokenType, _param3 fosite.Client) error {
+	ret := _m.ctrl.Call(_m, "RevokeToken", _param0, _param1, _param2, _param3)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-func (_mr *_MockRevocationHandlerRecorder) RevokeToken(arg0, arg1, arg2 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "RevokeToken", arg0, arg1, arg2)
+func (_mr *_MockRevocationHandlerRecorder) RevokeToken(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "RevokeToken", arg0, arg1, arg2, arg3)
 }

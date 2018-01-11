@@ -5,6 +5,13 @@ bumps (`0.1.0` -> `0.2.0`).
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 
 
+- [0.15.0](#0150)
+- [0.14.0](#0140)
+- [0.13.0](#0130)
+  - [Breaking changes](#breaking-changes)
+- [0.12.0](#0120)
+  - [Breaking changes](#breaking-changes-1)
+    - [Improved cryptographic methods](#improved-cryptographic-methods)
 - [0.11.0](#0110)
   - [Non-breaking changes](#non-breaking-changes)
     - [Storage adapter](#storage-adapter)
@@ -19,7 +26,7 @@ bumps (`0.1.0` -> `0.2.0`).
 - [0.10.0](#0100)
 - [0.9.0](#090)
 - [0.8.0](#080)
-  - [Breaking changes](#breaking-changes)
+  - [Breaking changes](#breaking-changes-2)
     - [`ClientManager`](#clientmanager)
     - [`OAuth2Provider`](#oauth2provider)
 - [0.7.0](#070)
@@ -31,6 +38,50 @@ bumps (`0.1.0` -> `0.2.0`).
 - [0.1.0](#010)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
+
+## 0.16.0
+
+This patch introduces `SendDebugMessagesToClients` to the Fosite struct which enables/disables sending debug information to
+clients. Debug information may contain sensitive information as it forwards error messages from, for example, storage
+implementations. For this reason, `RevealDebugPayloads` defaults to false. Keep in mind that the information may be
+very helpful when specific OAuth 2.0 requests fail and we generally recommend displaying debug information.
+
+Additionally, error keys for JSON changed which caused a new minor version, speicifically
+[`statusCode` was changed to `status_code`](https://github.com/ory/fosite/pull/242/files#diff-dd25e0e0a594c3f3592c1c717039b85eR221).
+
+
+## 0.15.0
+
+This release focuses on improving compatibility with OpenID Connect Certification and better error context.
+
+* Error handling is improved by explicitly adding debug information (e.g. "Token invalid because it was not found
+in the database") to the error object. Previously, the original error was prepended which caused weird formatting issues.
+* Allows client credentials in POST body at the `/oauth2/token` endpoint. Please note that this method is not recommended
+to be used, unless the client making the request is unable to use HTTP Basic Authorization.
+* Allows public clients (without secret) to access the `/oauth2/token` endpoint which was previously only possible by adding an arbitrary
+secret.
+
+This release has no breaking changes to the external API but due to the nature of the changes, it is released
+as a new major version.
+
+## 0.14.0
+
+Improves error contexts. A breaking code changes to the public API was reverted with 0.14.1.
+
+## 0.13.0
+
+### Breaking changes
+
+`glide` was replaced with `dep`.
+
+## 0.12.0
+
+### Breaking changes
+
+#### Improved cryptographic methods
+
+* The minimum required secret length used to generate signatures of access tokens has increased from 16 to 32 byte.
+* The algorithm used to generate access tokens using the HMAC-SHA strategy has changed from HMAC-SHA256 to HMAC-SHA512.
 
 ## 0.11.0
 

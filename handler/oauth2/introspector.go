@@ -1,7 +1,23 @@
+// Copyright © 2017 Aeneas Rekkas <aeneas+oss@aeneas.io>
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package oauth2
 
 import (
 	"context"
+
+	"fmt"
 
 	"github.com/ory/fosite"
 	"github.com/pkg/errors"
@@ -45,7 +61,7 @@ func matchScopes(ss fosite.ScopeStrategy, granted, scopes []string) error {
 		}
 
 		if !ss(granted, scope) {
-			return errors.Wrapf(fosite.ErrInvalidScope, "Scope %s was not granted", scope)
+			return errors.WithStack(fosite.ErrInvalidScope.WithDebug(fmt.Sprintf("Scope %s was not granted", scope)))
 		}
 	}
 
@@ -56,7 +72,7 @@ func (c *CoreValidator) introspectAccessToken(ctx context.Context, token string,
 	sig := c.CoreStrategy.AccessTokenSignature(token)
 	or, err := c.CoreStorage.GetAccessTokenSession(ctx, sig, accessRequest.GetSession())
 	if err != nil {
-		return errors.Wrap(fosite.ErrRequestUnauthorized, err.Error())
+		return errors.WithStack(fosite.ErrRequestUnauthorized.WithDebug(err.Error()))
 	} else if err := c.CoreStrategy.ValidateAccessToken(ctx, or, token); err != nil {
 		return err
 	}
@@ -74,7 +90,7 @@ func (c *CoreValidator) introspectRefreshToken(ctx context.Context, token string
 	or, err := c.CoreStorage.GetRefreshTokenSession(ctx, sig, accessRequest.GetSession())
 
 	if err != nil {
-		return errors.Wrap(fosite.ErrRequestUnauthorized, err.Error())
+		return errors.WithStack(fosite.ErrRequestUnauthorized.WithDebug(err.Error()))
 	} else if err := c.CoreStrategy.ValidateRefreshToken(ctx, or, token); err != nil {
 		return err
 	}

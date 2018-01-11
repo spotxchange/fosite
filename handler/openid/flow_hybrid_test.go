@@ -1,8 +1,24 @@
+// Copyright © 2017 Aeneas Rekkas <aeneas+oss@aeneas.io>
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package openid
 
 import (
 	"testing"
 	"time"
+
+	"fmt"
 
 	"github.com/golang/mock/gomock"
 	"github.com/ory/fosite"
@@ -11,8 +27,8 @@ import (
 	"github.com/ory/fosite/storage"
 	"github.com/ory/fosite/token/hmac"
 	"github.com/ory/fosite/token/jwt"
-	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 var idStrategy = &DefaultStrategy{
@@ -23,7 +39,7 @@ var idStrategy = &DefaultStrategy{
 
 var hmacStrategy = &oauth2.HMACSHAStrategy{
 	Enigma: &hmac.HMACStrategy{
-		GlobalSecret: []byte("some-super-cool-secret-that-nobody-knows"),
+		GlobalSecret: []byte("some-super-cool-secret-that-nobody-knows-nobody-knows"),
 	},
 }
 
@@ -152,18 +168,19 @@ func TestHybrid_HandleAuthorizeEndpointRequest(t *testing.T) {
 			},
 		},
 	} {
-		c.setup()
-		err := h.HandleAuthorizeEndpointRequest(nil, areq, aresp)
-		condition := errors.Cause(err) == c.expectErr
-		assert.True(t, condition, "(%d) %s\n%s\n%s", k, c.description, err, c.expectErr)
-		if condition {
-			t.Logf("Passed test case %d", k)
-		} else {
-			t.Logf("Failed test case %d", k)
-		}
+		t.Run(fmt.Sprintf("case=%d", k), func(t *testing.T) {
+			c.setup()
+			err := h.HandleAuthorizeEndpointRequest(nil, areq, aresp)
 
-		if c.check != nil {
-			c.check()
-		}
+			if c.expectErr != nil {
+				require.EqualError(t, err, c.expectErr.Error())
+			} else {
+				require.NoError(t, err)
+			}
+
+			if c.check != nil {
+				c.check()
+			}
+		})
 	}
 }

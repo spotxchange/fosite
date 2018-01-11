@@ -1,3 +1,17 @@
+// Copyright © 2017 Aeneas Rekkas <aeneas+oss@aeneas.io>
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package integration_test
 
 import (
@@ -7,6 +21,8 @@ import (
 	"strings"
 	"testing"
 	"time"
+
+	"fmt"
 
 	"github.com/ory/fosite"
 	"github.com/ory/fosite/compose"
@@ -47,36 +63,37 @@ func runTestAuthorizeImplicitGrant(t *testing.T, strategy interface{}) {
 			authStatusCode: http.StatusOK,
 		},
 	} {
-		c.setup()
+		t.Run(fmt.Sprintf("case=%d/description=%s", k, c.description), func(t *testing.T) {
+			c.setup()
 
-		var callbackURL *url.URL
-		authURL := strings.Replace(oauthClient.AuthCodeURL(state), "response_type=code", "response_type=token", -1)
-		client := &http.Client{
-			CheckRedirect: func(req *http.Request, via []*http.Request) error {
-				callbackURL = req.URL
-				return errors.New("Dont follow redirects")
-			},
-		}
-		resp, err := client.Get(authURL)
-		require.NotNil(t, err)
-
-		if resp.StatusCode == http.StatusOK {
-			fragment, err := url.ParseQuery(callbackURL.Fragment)
-			require.Nil(t, err)
-			expires, err := strconv.Atoi(fragment.Get("expires_in"))
-			require.Nil(t, err)
-			token := &goauth.Token{
-				AccessToken:  fragment.Get("access_token"),
-				TokenType:    fragment.Get("token_type"),
-				RefreshToken: fragment.Get("refresh_token"),
-				Expiry:       time.Now().Add(time.Duration(expires) * time.Second),
+			var callbackURL *url.URL
+			authURL := strings.Replace(oauthClient.AuthCodeURL(state), "response_type=code", "response_type=token", -1)
+			client := &http.Client{
+				CheckRedirect: func(req *http.Request, via []*http.Request) error {
+					callbackURL = req.URL
+					return errors.New("Dont follow redirects")
+				},
 			}
+			resp, err := client.Get(authURL)
+			require.Error(t, err)
 
-			httpClient := oauthClient.Client(goauth.NoContext, token)
-			resp, err := httpClient.Get(ts.URL + "/info")
-			require.Nil(t, err, "(%d) %s", k, c.description)
-			assert.Equal(t, http.StatusNoContent, resp.StatusCode, "(%d) %s", k, c.description)
-		}
-		t.Logf("Passed test case (%d) %s", k, c.description)
+			if resp.StatusCode == http.StatusOK {
+				fragment, err := url.ParseQuery(callbackURL.Fragment)
+				require.NoError(t, err)
+				expires, err := strconv.Atoi(fragment.Get("expires_in"))
+				require.NoError(t, err)
+				token := &goauth.Token{
+					AccessToken:  fragment.Get("access_token"),
+					TokenType:    fragment.Get("token_type"),
+					RefreshToken: fragment.Get("refresh_token"),
+					Expiry:       time.Now().UTC().Add(time.Duration(expires) * time.Second),
+				}
+
+				httpClient := oauthClient.Client(goauth.NoContext, token)
+				resp, err := httpClient.Get(ts.URL + "/info")
+				require.NoError(t, err)
+				assert.Equal(t, http.StatusNoContent, resp.StatusCode)
+			}
+		})
 	}
 }

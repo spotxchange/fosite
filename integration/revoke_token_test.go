@@ -1,3 +1,17 @@
+// Copyright © 2017 Aeneas Rekkas <aeneas+oss@aeneas.io>
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package integration_test
 
 import (
@@ -29,20 +43,20 @@ func runRevokeTokenTest(t *testing.T, strategy oauth2.AccessTokenStrategy) {
 
 	oauthClient := newOAuth2AppClient(ts)
 	token, err := oauthClient.Token(goauth.NoContext)
-	assert.Nil(t, err)
+	require.NoError(t, err)
 
 	resp, _, errs := gorequest.New().Post(ts.URL+"/revoke").
 		SetBasicAuth(oauthClient.ClientID, oauthClient.ClientSecret).
 		Type("form").
 		SendStruct(map[string]string{"token": "asdf"}).End()
-	assert.Len(t, errs, 0)
+	require.Len(t, errs, 0)
 	assert.Equal(t, 200, resp.StatusCode)
 
 	resp, _, errs = gorequest.New().Post(ts.URL+"/revoke").
 		SetBasicAuth(oauthClient.ClientID, oauthClient.ClientSecret).
 		Type("form").
 		SendStruct(map[string]string{"token": token.AccessToken}).End()
-	assert.Len(t, errs, 0)
+	require.Len(t, errs, 0)
 	assert.Equal(t, 200, resp.StatusCode)
 
 	hres, _, errs := gorequest.New().Get(ts.URL+"/info").

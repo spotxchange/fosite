@@ -1,3 +1,17 @@
+// Copyright © 2017 Aeneas Rekkas <aeneas+oss@aeneas.io>
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package fosite
 
 import (
@@ -12,14 +26,15 @@ func (f *Fosite) NewAccessResponse(ctx context.Context, requester AccessRequeste
 
 	response := NewAccessResponse()
 	for _, tk = range f.TokenEndpointHandlers {
-		if err = tk.PopulateTokenEndpointResponse(ctx, requester, response); errors.Cause(err) == ErrUnknownRequest {
+		if err = tk.PopulateTokenEndpointResponse(ctx, requester, response); err == nil {
+		} else if errors.Cause(err).Error() == ErrUnknownRequest.Error() {
 		} else if err != nil {
 			return nil, err
 		}
 	}
 
 	if response.GetAccessToken() == "" || response.GetTokenType() == "" {
-		return nil, errors.Wrap(ErrServerError, "Access token or token type not set")
+		return nil, errors.WithStack(ErrServerError.WithDebug("Access token or token type not set"))
 	}
 
 	return response, nil

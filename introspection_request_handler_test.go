@@ -1,9 +1,25 @@
+// Copyright © 2017 Aeneas Rekkas <aeneas+oss@aeneas.io>
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package fosite_test
 
 import (
 	"net/http"
 	"net/url"
 	"testing"
+
+	"fmt"
 
 	"github.com/golang/mock/gomock"
 	"github.com/ory/fosite"
@@ -13,6 +29,7 @@ import (
 	"github.com/ory/fosite/storage"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestIntrospectionResponse(t *testing.T) {
@@ -88,12 +105,16 @@ func TestNewIntrospectionRequest(t *testing.T) {
 			isActive: true,
 		},
 	} {
-		c.setup()
-		res, err := f.NewIntrospectionRequest(nil, httpreq, &DefaultSession{})
-		assert.True(t, errors.Cause(err) == c.expectErr, "(%d) %s\n%s\n%s", k, c.description, err, c.expectErr)
-		if res != nil {
-			assert.Equal(t, c.isActive, res.IsActive())
-		}
-		t.Logf("Passed test case %d", k)
+		t.Run(fmt.Sprintf("case=%d", k), func(t *testing.T) {
+			c.setup()
+			res, err := f.NewIntrospectionRequest(nil, httpreq, &DefaultSession{})
+
+			if c.expectErr != nil {
+				assert.EqualError(t, err, c.expectErr.Error())
+			} else {
+				require.NoError(t, err)
+				assert.Equal(t, c.isActive, res.IsActive())
+			}
+		})
 	}
 }

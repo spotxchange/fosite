@@ -1,3 +1,17 @@
+// Copyright © 2017 Aeneas Rekkas <aeneas+oss@aeneas.io>
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package openid
 
 import (
@@ -29,19 +43,19 @@ func (c *OpenIDConnectImplicitHandler) HandleAuthorizeEndpointRequest(ctx contex
 	}
 
 	if !ar.GetClient().GetGrantTypes().Has("implicit") {
-		return errors.Wrap(fosite.ErrInvalidGrant, "The client is not allowed to use implicit grant type")
+		return errors.WithStack(fosite.ErrInvalidGrant.WithDebug("The client is not allowed to use implicit grant type"))
 	}
 
 	if ar.GetResponseTypes().Exact("id_token") && !ar.GetClient().GetResponseTypes().Has("id_token") {
-		return errors.Wrap(fosite.ErrInvalidGrant, "The client is not allowed to use response type id_token")
+		return errors.WithStack(fosite.ErrInvalidGrant.WithDebug("The client is not allowed to use response type id_token"))
 	} else if ar.GetResponseTypes().Matches("token", "id_token") && !ar.GetClient().GetResponseTypes().Has("token", "id_token") {
-		return errors.Wrap(fosite.ErrInvalidGrant, "The client is not allowed to use response type token and id_token")
+		return errors.WithStack(fosite.ErrInvalidGrant.WithDebug("The client is not allowed to use response type token and id_token"))
 	}
 
 	client := ar.GetClient()
 	for _, scope := range ar.GetRequestedScopes() {
 		if !c.ScopeStrategy(client.GetScopes(), scope) {
-			return errors.Wrap(fosite.ErrInvalidScope, fmt.Sprintf("The client is not allowed to request scope %s", scope))
+			return errors.WithStack(fosite.ErrInvalidScope.WithDebug(fmt.Sprintf("The client is not allowed to request scope %s", scope)))
 		}
 	}
 
@@ -53,7 +67,7 @@ func (c *OpenIDConnectImplicitHandler) HandleAuthorizeEndpointRequest(ctx contex
 	claims := sess.IDTokenClaims()
 	if ar.GetResponseTypes().Has("token") {
 		if err := c.AuthorizeImplicitGrantTypeHandler.IssueImplicitAccessToken(ctx, ar, resp); err != nil {
-			return errors.Wrap(err, err.Error())
+			return errors.WithStack(err)
 		}
 
 		ar.SetResponseTypeHandled("token")
@@ -68,7 +82,7 @@ func (c *OpenIDConnectImplicitHandler) HandleAuthorizeEndpointRequest(ctx contex
 	}
 
 	if err := c.IssueImplicitIDToken(ctx, ar, resp); err != nil {
-		return errors.Wrap(err, err.Error())
+		return errors.WithStack(err)
 	}
 
 	// there is no need to check for https, because implicit flow does not require https

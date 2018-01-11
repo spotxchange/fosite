@@ -1,3 +1,17 @@
+// Copyright © 2017 Aeneas Rekkas <aeneas+oss@aeneas.io>
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package oauth2
 
 import (
@@ -103,13 +117,13 @@ func TestRefreshFlow_HandleTokenEndpointRequest(t *testing.T) {
 							Scopes:        fosite.Arguments{"foo", "bar"},
 							Session:       sess,
 							Form:          url.Values{"foo": []string{"bar"}},
-							RequestedAt:   time.Now().Add(-time.Hour).Round(time.Hour),
+							RequestedAt:   time.Now().UTC().Add(-time.Hour).Round(time.Hour),
 						})
 						require.NoError(t, err)
 					},
 					expect: func(t *testing.T) {
 						assert.NotEqual(t, sess, areq.Session)
-						assert.NotEqual(t, time.Now().Add(-time.Hour).Round(time.Hour), areq.RequestedAt)
+						assert.NotEqual(t, time.Now().UTC().Add(-time.Hour).Round(time.Hour), areq.RequestedAt)
 						assert.Equal(t, fosite.Arguments{"foo", "offline"}, areq.GrantedScopes)
 						assert.Equal(t, fosite.Arguments{"foo", "bar"}, areq.Scopes)
 						assert.NotEqual(t, url.Values{"foo": []string{"bar"}}, areq.Form)

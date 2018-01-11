@@ -1,9 +1,25 @@
+// Copyright © 2017 Aeneas Rekkas <aeneas+oss@aeneas.io>
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package fosite
 
 import (
 	"context"
 	"net/http"
 	"strings"
+
+	"fmt"
 
 	"github.com/pkg/errors"
 )
@@ -89,9 +105,9 @@ import (
 //	token=mF_9.B5f-4.1JqM&token_type_hint=access_token
 func (f *Fosite) NewIntrospectionRequest(ctx context.Context, r *http.Request, session Session) (IntrospectionResponder, error) {
 	if r.Method != "POST" {
-		return &IntrospectionResponse{Active: false}, errors.Wrap(ErrInvalidRequest, "HTTP method is not POST")
+		return &IntrospectionResponse{Active: false}, errors.WithStack(ErrInvalidRequest.WithDebug("HTTP method is not POST"))
 	} else if err := r.ParseForm(); err != nil {
-		return &IntrospectionResponse{Active: false}, errors.Wrap(ErrInvalidRequest, err.Error())
+		return &IntrospectionResponse{Active: false}, errors.WithStack(ErrInvalidRequest.WithDebug(err.Error()))
 	}
 
 	token := r.PostForm.Get("token")
@@ -99,32 +115,32 @@ func (f *Fosite) NewIntrospectionRequest(ctx context.Context, r *http.Request, s
 	scope := r.PostForm.Get("scope")
 	if clientToken := AccessTokenFromRequest(r); clientToken != "" {
 		if token == clientToken {
-			return &IntrospectionResponse{Active: false}, errors.Wrap(ErrRequestUnauthorized, "Bearer and introspection token are identical")
+			return &IntrospectionResponse{Active: false}, errors.WithStack(ErrRequestUnauthorized.WithDebug("Bearer and introspection token are identical"))
 		}
 
 		if _, err := f.IntrospectToken(ctx, clientToken, AccessToken, session.Clone()); err != nil {
-			return &IntrospectionResponse{Active: false}, errors.Wrap(ErrRequestUnauthorized, "HTTP Authorization header missing, malformed or credentials used are invalid")
+			return &IntrospectionResponse{Active: false}, errors.WithStack(ErrRequestUnauthorized.WithDebug("HTTP Authorization header missing.WithDebug(malformed or credentials used are invalid"))
 		}
 	} else {
 		clientID, clientSecret, ok := r.BasicAuth()
 		if !ok {
-			return &IntrospectionResponse{Active: false}, errors.Wrap(ErrRequestUnauthorized, "HTTP Authorization header missing, malformed or credentials used are invalid")
+			return &IntrospectionResponse{Active: false}, errors.WithStack(ErrRequestUnauthorized.WithDebug("HTTP Authorization header missing.WithDebug(malformed or credentials used are invalid"))
 		}
 
 		client, err := f.Store.GetClient(ctx, clientID)
 		if err != nil {
-			return &IntrospectionResponse{Active: false}, errors.Wrap(ErrRequestUnauthorized, "HTTP Authorization header missing, malformed or credentials used are invalid")
+			return &IntrospectionResponse{Active: false}, errors.WithStack(ErrRequestUnauthorized.WithDebug("HTTP Authorization header missing.WithDebug(malformed or credentials used are invalid"))
 		}
 
 		// Enforce client authentication
 		if err := f.Hasher.Compare(client.GetHashedSecret(), []byte(clientSecret)); err != nil {
-			return &IntrospectionResponse{Active: false}, errors.Wrap(ErrRequestUnauthorized, "HTTP Authorization header missing, malformed or credentials used are invalid")
+			return &IntrospectionResponse{Active: false}, errors.WithStack(ErrRequestUnauthorized.WithDebug("HTTP Authorization header missing.WithDebug(malformed or credentials used are invalid"))
 		}
 	}
 
 	ar, err := f.IntrospectToken(ctx, token, TokenType(tokenType), session, strings.Split(scope, " ")...)
 	if err != nil {
-		return &IntrospectionResponse{Active: false}, errors.Wrapf(ErrInactiveToken, "Validator returned error %s", err.Error())
+		return &IntrospectionResponse{Active: false}, errors.WithStack(ErrInactiveToken.WithDebug(fmt.Sprintf("Validator returned error %s", err.Error())))
 	}
 
 	return &IntrospectionResponse{

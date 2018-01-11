@@ -1,3 +1,17 @@
+// Copyright © 2017 Aeneas Rekkas <aeneas+oss@aeneas.io>
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package fosite
 
 import (
@@ -29,25 +43,25 @@ import (
 // server and does not influence the revocation response.
 func (f *Fosite) NewRevocationRequest(ctx context.Context, r *http.Request) error {
 	if r.Method != "POST" {
-		return errors.Wrap(ErrInvalidRequest, "HTTP method is not POST")
+		return errors.WithStack(ErrInvalidRequest.WithDebug("HTTP method is not POST"))
 	} else if err := r.ParseForm(); err != nil {
-		return errors.Wrap(ErrInvalidRequest, err.Error())
+		return errors.WithStack(ErrInvalidRequest.WithDebug(err.Error()))
 	}
 
 	clientID, clientSecret, ok := r.BasicAuth()
 	if !ok {
-		return errors.Wrap(ErrInvalidRequest, "HTTP Authorization header missing or invalid")
+		return errors.WithStack(ErrInvalidRequest.WithDebug("HTTP Authorization header missing or invalid"))
 	}
 
 	client, err := f.Store.GetClient(ctx, clientID)
 	if err != nil {
-		return errors.Wrap(ErrInvalidClient, err.Error())
+		return errors.WithStack(ErrInvalidClient.WithDebug(err.Error()))
 	}
 
 	// Enforce client authentication for confidential clients
 	if !client.IsPublic() {
 		if err := f.Hasher.Compare(client.GetHashedSecret(), []byte(clientSecret)); err != nil {
-			return errors.Wrap(ErrInvalidClient, err.Error())
+			return errors.WithStack(ErrInvalidClient.WithDebug(err.Error()))
 		}
 	}
 
@@ -56,9 +70,9 @@ func (f *Fosite) NewRevocationRequest(ctx context.Context, r *http.Request) erro
 
 	var found bool
 	for _, loader := range f.RevocationHandlers {
-		if err := loader.RevokeToken(ctx, token, tokenTypeHint); err == nil {
+		if err := loader.RevokeToken(ctx, token, tokenTypeHint, client); err == nil {
 			found = true
-		} else if errors.Cause(err) == ErrUnknownRequest {
+		} else if errors.Cause(err).Error() == ErrUnknownRequest.Error() {
 			// do nothing
 		} else if err != nil {
 			return err
@@ -84,20 +98,24 @@ func (f *Fosite) NewRevocationRequest(ctx context.Context, r *http.Request) erro
 // purpose of the revocation request, invalidating the particular token,
 // is already achieved.
 func (f *Fosite) WriteRevocationResponse(rw http.ResponseWriter, err error) {
-	switch errors.Cause(err) {
-	case ErrInvalidRequest:
+	if err == nil {
+		rw.WriteHeader(http.StatusOK)
+		return
+	}
+
+	switch errors.Cause(err).Error() {
+	case ErrInvalidRequest.Error():
 		fallthrough
-	case ErrInvalidClient:
+	case ErrInvalidClient.Error():
 		rw.Header().Set("Content-Type", "application/json;charset=UTF-8")
 
-		rfcerr := ErrorToRFC6749Error(err)
-		js, err := json.Marshal(rfcerr)
+		js, err := json.Marshal(ErrInvalidClient)
 		if err != nil {
 			http.Error(rw, fmt.Sprintf(`{"error": "%s"}`, err.Error()), http.StatusInternalServerError)
 			return
 		}
 
-		rw.WriteHeader(rfcerr.Code)
+		rw.WriteHeader(ErrInvalidClient.Code)
 		rw.Write(js)
 	default:
 		// 200 OK

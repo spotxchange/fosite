@@ -1,3 +1,17 @@
+// Copyright © 2017 Aeneas Rekkas <aeneas+oss@aeneas.io>
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package fosite
 
 import (
@@ -5,6 +19,8 @@ import (
 	"strings"
 
 	"context"
+
+	"fmt"
 
 	"github.com/pkg/errors"
 )
@@ -17,7 +33,7 @@ func (c *Fosite) NewAuthorizeRequest(ctx context.Context, r *http.Request) (Auth
 	}
 
 	if err := r.ParseForm(); err != nil {
-		return request, errors.Wrap(ErrInvalidRequest, err.Error())
+		return request, errors.WithStack(ErrInvalidRequest.WithDebug(err.Error()))
 	}
 
 	request.Form = r.Form
@@ -30,15 +46,15 @@ func (c *Fosite) NewAuthorizeRequest(ctx context.Context, r *http.Request) (Auth
 	// Fetch redirect URI from request
 	rawRedirURI, err := GetRedirectURIFromRequestValues(r.Form)
 	if err != nil {
-		return request, errors.Wrap(ErrInvalidRequest, err.Error())
+		return request, errors.WithStack(ErrInvalidRequest.WithDebug(err.Error()))
 	}
 
 	// Validate redirect uri
 	redirectURI, err := MatchRedirectURIWithClientRedirectURIs(rawRedirURI, client)
 	if err != nil {
-		return request, errors.Wrap(ErrInvalidRequest, err.Error())
+		return request, errors.WithStack(ErrInvalidRequest.WithDebug(err.Error()))
 	} else if !IsValidRedirectURI(redirectURI) {
-		return request, errors.Wrap(ErrInvalidRequest, "not a valid redirect uri")
+		return request, errors.WithStack(ErrInvalidRequest.WithDebug("not a valid redirect uri"))
 	}
 	request.RedirectURI = redirectURI
 
@@ -58,7 +74,7 @@ func (c *Fosite) NewAuthorizeRequest(ctx context.Context, r *http.Request) (Auth
 	state := r.Form.Get("state")
 	if len(state) < MinParameterEntropy {
 		// We're assuming that using less then 8 characters for the state can not be considered "unguessable"
-		return request, errors.Wrapf(ErrInvalidState, "state length must at least be %d characters long", MinParameterEntropy)
+		return request, errors.WithStack(ErrInvalidState.WithDebug(fmt.Sprintf("State length must at least be %d characters long", MinParameterEntropy)))
 	}
 	request.State = state
 

@@ -1,3 +1,17 @@
+// Copyright © 2017 Aeneas Rekkas <aeneas+oss@aeneas.io>
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package jwt
 
 import (
@@ -8,16 +22,18 @@ import (
 
 // IDTokenClaims represent the claims used in open id connect requests
 type IDTokenClaims struct {
-	Issuer          string
-	Subject         string
-	Audience        string
-	Nonce           string
-	ExpiresAt       time.Time
-	IssuedAt        time.Time
-	AuthTime        time.Time
-	AccessTokenHash string
-	CodeHash        string
-	Extra           map[string]interface{}
+	Issuer                              string
+	Subject                             string
+	Audience                            string
+	Nonce                               string
+	ExpiresAt                           time.Time
+	IssuedAt                            time.Time
+	RequestedAt                         time.Time
+	AuthTime                            time.Time
+	AccessTokenHash                     string
+	AuthenticationContextClassReference string
+	CodeHash                            string
+	Extra                               map[string]interface{}
 }
 
 // ToMap will transform the headers to a map structure
@@ -40,8 +56,13 @@ func (c *IDTokenClaims) ToMap() map[string]interface{} {
 		ret["auth_time"] = c.AuthTime.Unix()
 	}
 
+	if len(c.AuthenticationContextClassReference) > 0 {
+		ret["acr"] = c.AuthenticationContextClassReference
+	}
+
 	ret["iat"] = float64(c.IssuedAt.Unix())
 	ret["exp"] = float64(c.ExpiresAt.Unix())
+	ret["rat"] = float64(c.RequestedAt.Unix())
 	return ret
 
 }
