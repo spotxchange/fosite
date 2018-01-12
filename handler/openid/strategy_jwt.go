@@ -27,8 +27,6 @@ import (
 	"github.com/spotxchange/fosite"
 	"github.com/spotxchange/fosite/token/jwt"
 	"github.com/pkg/errors"
-	"github.com/spotxchange/fosite"
-	"github.com/spotxchange/fosite/token/jwt"
 )
 
 const defaultExpiryTime = time.Hour
