@@ -23,9 +23,8 @@ import (
 
 	"fmt"
 
-	"github.com/ory/fosite/storage"
-	"github.com/ory/fosite"
-	"github.com/ory/fosite/internal"
+	"github.com/spotxchange/fosite/storage"
+	"github.com/spotxchange/fosite"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"

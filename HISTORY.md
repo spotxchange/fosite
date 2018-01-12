@@ -122,7 +122,7 @@ A new [scope strategy](https://github.com/ory/fosite/pull/187) was introduced ca
 the composer. To set the HierarchicScopeStrategy strategy, do:
 
 ```
-import "github.com/ory/fosite/compose"
+import "github.com/spotxchange/fosite/compose"
 
 var config = &compose.Config{
     ScopeStrategy: fosite.HierarchicScopeStrategy,

@@ -23,7 +23,7 @@ import (
 	"sync"
 
 	"github.com/gtank/cryptopasta"
-	"github.com/ory/fosite"
+	"github.com/spotxchange/fosite"
 	"github.com/pkg/errors"
 )
 

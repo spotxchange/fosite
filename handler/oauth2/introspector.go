@@ -19,7 +19,7 @@ import (
 
 	"fmt"
 	
-	"github.com/ory/fosite"
+	"github.com/spotxchange/fosite"
 	"github.com/pkg/errors"
 )
 

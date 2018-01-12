@@ -19,10 +19,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/spotxchange/fosite"
 	"github.com/spotxchange/fosite/storage"
-	"github.com/golang/mock/gomock"
-	"github.com/ory/fosite"
-	"github.com/ory/fosite/internal"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -176,66 +174,38 @@ func TestRefreshFlow_PopulateTokenEndpointResponse(t *testing.T) {
 				expectErr   error
 			}{
 				{
-				description: "should fail because not responsible",
-				expectErr:   fosite.ErrUnknownRequest,
-				setup: func() {
-					areq.GrantTypes = fosite.Arguments{"313"}
+					description: "should fail because not responsible",
+					expectErr:   fosite.ErrUnknownRequest,
+					setup: func() {
+						areq.GrantTypes = fosite.Arguments{"313"}
+					},
 				},
-			},
-			{
-				description: "should fail because access token generation fails",
-				setup: func() {
-					areq.GrantTypes = fosite.Arguments{"refresh_token"}
-					areq.Form.Add("refresh_token", "foo.reftokensig")
-					rcts.EXPECT().RefreshTokenSignature("foo.reftokensig").AnyTimes().Return("reftokensig")
-					acts.EXPECT().GenerateAccessToken(nil, areq).Return("", "", errors.New(""))
-				},
-				expectErr: fosite.ErrServerError,
-			},
-			{
-				description: "should fail because access token generation fails",
-				setup: func() {
-					acts.EXPECT().GenerateAccessToken(nil, areq).AnyTimes().Return("access.atsig", "atsig", nil)
-					rcts.EXPECT().GenerateRefreshToken(nil, areq).Return("", "", errors.New(""))
-				},
-				expectErr: fosite.ErrServerError,
-			},
-			{
-				description: "should fail because persisting fails",
-				setup: func() {
-					rcts.EXPECT().GenerateRefreshToken(nil, areq).AnyTimes().Return("refresh.resig", "resig", nil)
-					store.EXPECT().PersistRefreshTokenGrantSession(nil, "reftokensig", "atsig", "resig", areq).Return(errors.New(""))
-				},
-				expectErr: fosite.ErrServerError,
-			},
-			{
-				description: "should pass",
-				setup: func() {
-					areq.Session = &fosite.DefaultSession{}
-					store.EXPECT().PersistRefreshTokenGrantSession(nil, "reftokensig", "atsig", "resig", areq).AnyTimes().Return(nil)
+				{
+					description: "should pass",
+					setup: func() {
+						areq.GrantTypes = fosite.Arguments{"refresh_token"}
+						areq.Scopes = fosite.Arguments{"foo", "bar"}
+						areq.GrantedScopes = fosite.Arguments{"foo", "bar"}
 
-					aresp.EXPECT().SetAccessToken("access.atsig")
-					aresp.EXPECT().SetTokenType("bearer")
-					aresp.EXPECT().SetExpiresIn(gomock.Any())
-					aresp.EXPECT().SetScopes(gomock.Any())
-					aresp.EXPECT().SetExtra("refresh_token", "refresh.resig")
-				},
-			},
-			{
-				description: "should insert the same token signature for permanent",
-				setup: func() {
-					areq.Session = &fosite.DefaultSession{}
+						token, signature, err := strategy.GenerateRefreshToken(nil, nil)
+						require.NoError(t, err)
+						require.NoError(t, store.CreateRefreshTokenSession(nil, signature, areq))
+						areq.Form.Add("refresh_token", token)
+					},
+					check: func() {
+						signature := strategy.RefreshTokenSignature(areq.Form.Get("refresh_token"))
 
-					h.RefreshTokenLifespan = -1
+						// The old refresh token should be deleted
+						_, err := store.GetRefreshTokenSession(nil, signature, nil)
+						require.Error(t, err)
 
-					store.EXPECT().PersistRefreshTokenGrantSession(nil, "reftokensig", "atsig", "reftokensig", areq).AnyTimes().Return(nil)
-					aresp.EXPECT().SetAccessToken("access.atsig")
-					aresp.EXPECT().SetTokenType("bearer")
-					aresp.EXPECT().SetExpiresIn(gomock.Any())
-					aresp.EXPECT().SetScopes(gomock.Any())
-					aresp.EXPECT().SetExtra("refresh_token", "foo.reftokensig")
+						require.NoError(t, strategy.ValidateAccessToken(nil, areq, aresp.GetAccessToken()))
+						require.NoError(t, strategy.ValidateRefreshToken(nil, areq, aresp.ToMap()["refresh_token"].(string)))
+						assert.Equal(t, "bearer", aresp.GetTokenType())
+						assert.NotEmpty(t, aresp.ToMap()["expires_in"])
+						assert.Equal(t, "foo bar", aresp.ToMap()["scope"])
+					},
 				},
-			},
 			} {
 				t.Run("case="+c.description, func(t *testing.T) {
 					areq = fosite.NewAccessRequest(&fosite.DefaultSession{})

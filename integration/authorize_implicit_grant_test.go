@@ -23,9 +23,9 @@ import (
 	"time"
 
 	"fmt"
-	"github.com/ory/fosite"
-	"github.com/ory/fosite/compose"
-	"github.com/ory/fosite/handler/oauth2"
+	"github.com/spotxchange/fosite"
+	"github.com/spotxchange/fosite/compose"
+	"github.com/spotxchange/fosite/handler/oauth2"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"

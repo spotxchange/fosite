@@ -68,6 +68,12 @@
   version = "v1.0.0"
 
 [[projects]]
+  name = "github.com/spotxchange/fosite"
+  packages = [".","compose","handler/oauth2","handler/openid","internal","storage","token/hmac","token/jwt"]
+  revision = "1ef3041c4da40d27ea25d56710e59d5f9352df5f"
+  version = "v0.16.1"
+
+[[projects]]
   name = "github.com/parnurzeal/gorequest"
   packages = ["."]
   revision = "a578a48e8d6ca8b01a3b18314c43c6716bb5f5a3"
@@ -130,6 +136,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "1ec88100ce674d2223851185b8712fcf94ba459b7b891314b79849ad95916938"
+  inputs-digest = "92be30e2a584b9e2b46d25a7bc342400d164f8bda0f4d3ac8bdf4d6b5a77d28c"
   solver-name = "gps-cdcl"
   solver-version = 1

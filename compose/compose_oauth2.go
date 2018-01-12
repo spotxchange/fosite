@@ -15,7 +15,7 @@
 package compose
 
 import (
-	"github.com/ory/fosite/handler/oauth2"
+	"github.com/spotxchange/fosite/handler/oauth2"
 )
 
 // OAuth2AuthorizeExplicitFactory creates an OAuth2 authorize code grant ("authorize explicit flow") handler and registers
@@ -52,7 +52,6 @@ func OAuth2RefreshTokenGrantFactory(config *Config, storage interface{}, strateg
 	return &oauth2.RefreshTokenGrantHandler{
 		AccessTokenStrategy:      strategy.(oauth2.AccessTokenStrategy),
 		RefreshTokenStrategy:     strategy.(oauth2.RefreshTokenStrategy),
-		RefreshTokenGrantStorage: storage.(oauth2.RefreshTokenGrantStorage),
 		TokenRevocationStorage: storage.(oauth2.TokenRevocationStorage),
 		AccessTokenLifespan:      config.GetAccessTokenLifespan(),
 		RefreshTokenLifespan:     config.GetRefreshTokenLifespan(),

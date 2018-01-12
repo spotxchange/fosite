@@ -20,9 +20,6 @@ import (
 	"fmt"
 
 	"github.com/golang/mock/gomock"
-	"github.com/ory/fosite"
-	"github.com/ory/fosite/internal"
-	"github.com/ory/fosite/token/jwt"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/require"
 	"github.com/spotxchange/fosite"

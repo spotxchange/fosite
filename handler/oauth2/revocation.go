@@ -17,6 +17,7 @@ package oauth2
 import (
 	"context"
 
+	"github.com/pkg/errors"
 	"github.com/spotxchange/fosite"
 )
 

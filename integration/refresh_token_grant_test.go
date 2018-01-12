@@ -23,7 +23,6 @@ import (
 	"github.com/spotxchange/fosite/handler/openid"
 	"github.com/spotxchange/fosite/internal"
 	"github.com/spotxchange/fosite/token/jwt"
-	"github.com/spotxchange/fosite"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/oauth2"

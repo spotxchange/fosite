@@ -17,7 +17,7 @@ package compose
 import (
 	"time"
 
-	"github.com/ory/fosite"
+	"github.com/spotxchange/fosite"
 )
 
 type Config struct {

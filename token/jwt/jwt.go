@@ -23,7 +23,7 @@ import (
 	"strings"
 
 	"github.com/dgrijalva/jwt-go"
-	"github.com/ory/fosite"
+	"github.com/spotxchange/fosite"
 	"github.com/pkg/errors"
 )
 
