@@ -104,9 +104,11 @@ func (f *Fosite) NewTokenMigrationRequest(ctx context.Context, r *http.Request) 
 
 	auth := r.PostForm.Get("authorities")
 
-	err = json.Unmarshal([]byte(auth), &extra)
-	if err != nil {
-		return errors.Wrap(ErrInvalidRequest, err.Error())
+	if len(auth) > 0 {
+		err = json.Unmarshal([]byte(auth), &extra)
+		if err != nil {
+			return errors.Wrap(ErrInvalidRequest, err.Error())
+		}
 	}
 
 	session := &migrationSession{
