@@ -97,15 +97,27 @@ func (f *Fosite) NewTokenMigrationRequest(ctx context.Context, r *http.Request) 
 			return errors.Wrap(ErrInvalidClient, err.Error())
 		}
 	}
+
+	extra := map[string]interface{}{
+		"migrated": true,
+	}
+
+	auth := r.PostForm.Get("authorities")
+
+	if len(auth) > 0 {
+		err = json.Unmarshal([]byte(auth), &extra)
+		if err != nil {
+			return errors.Wrap(ErrInvalidRequest, err.Error())
+		}
+	}
+
 	session := &migrationSession{
 		DefaultSession: DefaultSession{
 			Subject:   orgClientID,
 			Username:  r.PostForm.Get("username"),
 			ExpiresAt: make(map[TokenType]time.Time),
 		},
-		Extras: map[string]interface{}{
-			"migrated": true,
-		},
+		Extras: extra,
 	}
 
 	accessRequest := NewAccessRequest(session)
