@@ -130,14 +130,14 @@ func accessRequestFromRequest(r *http.Request) (url.Values, error) {
 		return r.PostForm, nil
 	} else if r.Body != nil {
 		body := map[string]interface{}{}
-		err = json.NewDecoder(r.Body).Decode(&body)
-		for k, v := range body {
-			if str, ok := v.(string); ok {
-				result.Set(k, str)
-			} else if arr, ok := v.([]string); ok {
-				result.Set(k, strings.Join(arr, " "))
+		if err = json.NewDecoder(r.Body).Decode(&body); err == nil {
+			for k, v := range body {
+				if str, ok := v.(string); ok {
+					result.Set(k, str)
+				} else if arr, ok := v.([]string); ok {
+					result.Set(k, strings.Join(arr, " "))
+				}
 			}
-
 		}
 	}
 
