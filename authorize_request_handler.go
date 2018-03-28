@@ -80,5 +80,10 @@ func (c *Fosite) NewAuthorizeRequest(ctx context.Context, r *http.Request) (Auth
 
 	// Remove empty items from arrays
 	request.SetRequestedScopes(removeEmpty(strings.Split(r.Form.Get("scope"), " ")))
+
+	if scopes := request.GetRequestedScopes(); client.GetGrantTypes().Has("refresh_token") && len(scopes) == 0 {
+		request.SetRequestedScopes(Arguments{"offline"})
+	}
+
 	return request, nil
 }
