@@ -34,6 +34,9 @@ import (
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"encoding/json"
+	"io/ioutil"
+	"bytes"
 )
 
 func TestNewAccessRequest(t *testing.T) {
@@ -196,11 +199,39 @@ func TestNewAccessRequest(t *testing.T) {
 			},
 		},
 	} {
-		t.Run(fmt.Sprintf("case=%d", k), func(t *testing.T) {
+		t.Run(fmt.Sprintf("case=%d Form", k), func(t *testing.T) {
 			r := &http.Request{
 				Header:   c.header,
 				PostForm: c.form,
 				Form:     c.form,
+				Method:   c.method,
+			}
+			c.mock()
+			ctx := NewContext()
+			fosite.TokenEndpointHandlers = c.handlers
+			ar, err := fosite.NewAccessRequest(ctx, r, new(DefaultSession))
+
+			if c.expectErr != nil {
+				assert.EqualError(t, err, c.expectErr.Error())
+			} else {
+				require.NoError(t, err)
+				AssertObjectKeysEqual(t, c.expect, ar, "GrantTypes", "Client")
+				assert.NotNil(t, ar.GetRequestedAt())
+			}
+		})
+
+		t.Run(fmt.Sprintf("case=%d JSON", k), func(t *testing.T) {
+			body := map[string]string{}
+			for k := range c.form {
+				body[k] = c.form.Get(k)
+			}
+
+			result, err := json.Marshal(&body)
+			assert.NoError(t, err, "The form could not be encoded into json.")
+
+			r := &http.Request{
+				Header:   c.header,
+				Body: ioutil.NopCloser(bytes.NewReader(result)),
 				Method:   c.method,
 			}
 			c.mock()
