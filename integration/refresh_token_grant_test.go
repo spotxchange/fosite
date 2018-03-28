@@ -58,6 +58,18 @@ func TestRefreshTokenFlow(t *testing.T) {
 			pass: false,
 		},
 		{
+			description: "should pass without asking for any scopes but not yield id token",
+			setup: func() {
+				oauthClient.Scopes = []string{}
+			},
+			pass: true,
+			check: func(original, refreshed *oauth2.Token) {
+				assert.NotEqual(t, original.RefreshToken, refreshed.RefreshToken)
+				assert.NotEqual(t, original.AccessToken, refreshed.AccessToken)
+				assert.Nil(t, refreshed.Extra("id_token"))
+			},
+		},
+		{
 			description: "should pass but not yield id token",
 			setup: func() {
 				oauthClient.Scopes = []string{"offline"}
