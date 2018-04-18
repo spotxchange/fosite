@@ -113,7 +113,7 @@ func (f *Fosite) NewTokenMigrationRequest(ctx context.Context, r *http.Request) 
 
 	session := &migrationSession{
 		DefaultSession: DefaultSession{
-			Subject:   orgClientID,
+			Subject:   r.PostForm.Get("username"),
 			Username:  r.PostForm.Get("username"),
 			ExpiresAt: make(map[TokenType]time.Time),
 		},
