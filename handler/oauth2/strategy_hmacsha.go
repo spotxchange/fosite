@@ -42,9 +42,10 @@ func (h HMACSHAStrategy) AuthorizeCodeSignature(token string) string {
 	return h.Enigma.Signature(token)
 }
 
-func (h HMACSHAStrategy) GenerateAccessToken(_ context.Context, r fosite.Requester) (token string, signature string, err error) {
+func (h HMACSHAStrategy) GenerateAccessToken(ctx context.Context, r fosite.Requester) (token string, signature string, err error) {
 	token, signature, err = h.Enigma.Generate()
-	r.GetRequestForm().Add("access_token", token)
+	c := context.WithValue(ctx, "refresh_token", token)
+	&ctx = &c
 	return
 }
 
@@ -68,9 +69,10 @@ func (h HMACSHAStrategy) ValidateAccessToken(_ context.Context, r fosite.Request
 	return
 }
 
-func (h HMACSHAStrategy) GenerateRefreshToken(_ context.Context, r fosite.Requester) (token string, signature string, err error) {
+func (h HMACSHAStrategy) GenerateRefreshToken(ctx context.Context, r fosite.Requester) (token string, signature string, err error) {
 	token, signature, err = h.Enigma.Generate()
-	r.GetRequestForm().Add("refresh_token", token)
+	c := context.WithValue(ctx, "refresh_token", token)
+	&ctx = &c
 	return
 }
 
