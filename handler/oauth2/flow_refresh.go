@@ -105,9 +105,9 @@ func (c *RefreshTokenGrantHandler) PopulateTokenEndpointResponse(ctx context.Con
 		return errors.WithStack(fosite.ErrServerError.WithDebug(err.Error()))
 	} else if err := c.TokenRevocationStorage.RevokeRefreshToken(ctx, ts.GetID()); err != nil {
 		return errors.WithStack(fosite.ErrServerError.WithDebug(err.Error()))
-	} else if err := c.TokenRevocationStorage.CreateAccessTokenSession(ctx, accessSignature, requester); err != nil {
+	} else if err := c.TokenRevocationStorage.CreateAccessTokenSession(context.WithValue(ctx, "access_token", accessToken), accessSignature, requester); err != nil {
 		return errors.WithStack(fosite.ErrServerError.WithDebug(err.Error()))
-	} else if err := c.TokenRevocationStorage.CreateRefreshTokenSession(ctx, refreshSignature, requester); err != nil {
+	} else if err := c.TokenRevocationStorage.CreateRefreshTokenSession(context.WithValue(ctx, "refresh_token", refreshToken), refreshSignature, requester); err != nil {
 		return errors.WithStack(fosite.ErrServerError.WithDebug(err.Error()))
 	}
 

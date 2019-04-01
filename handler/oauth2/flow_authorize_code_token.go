@@ -128,7 +128,7 @@ func (c *AuthorizeExplicitGrantHandler) PopulateTokenEndpointResponse(ctx contex
 
 	if err := c.CoreStorage.DeleteAuthorizeCodeSession(ctx, signature); err != nil {
 		return errors.WithStack(fosite.ErrServerError.WithDebug(err.Error()))
-	} else if err := c.CoreStorage.CreateAccessTokenSession(ctx, accessSignature, requester); err != nil {
+	} else if err := c.CoreStorage.CreateAccessTokenSession(context.WithValue(ctx, "access_token", access), accessSignature, requester); err != nil {
 		return errors.WithStack(fosite.ErrServerError.WithDebug(err.Error()))
 	} else if refreshSignature != "" {
 		if err := c.CoreStorage.CreateRefreshTokenSession(ctx, refreshSignature, requester); err != nil {

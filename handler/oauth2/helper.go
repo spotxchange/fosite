@@ -32,7 +32,7 @@ func (h *HandleHelper) IssueAccessToken(ctx context.Context, requester fosite.Ac
 	token, signature, err := h.AccessTokenStrategy.GenerateAccessToken(ctx, requester)
 	if err != nil {
 		return err
-	} else if err := h.AccessTokenStorage.CreateAccessTokenSession(ctx, signature, requester); err != nil {
+	} else if err := h.AccessTokenStorage.CreateAccessTokenSession(context.WithValue(ctx, "access_token", token), signature, requester); err != nil {
 		return err
 	}
 
