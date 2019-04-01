@@ -77,7 +77,7 @@ func (c *AuthorizeImplicitGrantTypeHandler) IssueImplicitAccessToken(ctx context
 		return errors.WithStack(fosite.ErrServerError.WithDebug(err.Error()))
 	}
 
-	if err := c.AccessTokenStorage.CreateAccessTokenSession(ctx, signature, ar); err != nil {
+	if err := c.AccessTokenStorage.CreateAccessTokenSession(context.WithValue(ctx, "access_token", token), signature, ar); err != nil {
 		return errors.WithStack(fosite.ErrServerError.WithDebug(err.Error()))
 	}
 
