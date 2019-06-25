@@ -71,7 +71,15 @@ func (h HMACSHAStrategy) GenerateRefreshToken(ctx context.Context, r fosite.Requ
 }
 
 func (h HMACSHAStrategy) ValidateRefreshToken(_ context.Context, _ fosite.Requester, token string) (err error) {
-	return h.Enigma.Validate(token)
+	if err = h.Enigma.Validate(token); err != nil {
+		// So... We know this isn't technically a valid token, but it's also in our DB...
+		// Meaning it was migrated in via the api. To make sure we're still being safe(ish),
+		// migrated tokens have to be passed in as `[token].[token]`.
+		if split := strings.Split(token, "."); len(split) == 2 && split[0] == split[1] {
+			return nil
+		}
+	}
+	return
 }
 
 func (h HMACSHAStrategy) GenerateAuthorizeCode(_ context.Context, _ fosite.Requester) (token string, signature string, err error) {
